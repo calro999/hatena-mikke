@@ -24,6 +24,7 @@ CHARACTERS = [
     "スクイーズ"
 ]
 
+# ホビーの種類定義
 HOBBIES = [
     "スクイーズ",
     "マスコット",
@@ -53,7 +54,7 @@ def generate_keyword() -> str:
     hobby = random.choice(HOBBIES)
     return f"{char} {hobby}"
 
-def fetch_rakuten_items(app_id: str, affiliate_id: str, keyword: str) -> list:
+def fetch_rakuten_items(app_id: str, access_key: str, affiliate_id: str, keyword: str) -> list:
     """Fetches items from the Rakuten Ichiba Item Search API."""
     if not app_id or app_id.startswith("DUMMY"):
         print("Rakuten App ID not set. Using mock data for local dry-run.")
@@ -62,7 +63,7 @@ def fetch_rakuten_items(app_id: str, affiliate_id: str, keyword: str) -> list:
     print(f"Debug: RAKUTEN_APP_ID length is {len(app_id)}")
     print(f"Searching with Keyword: {keyword}")
 
-    base_url = "https://app.rakuten.co.jp/services/api/IchibaItem/Search/20220601"
+    base_url = "https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20260401"
     params = {
         "applicationId": app_id,
         "affiliateId": affiliate_id,
@@ -72,6 +73,10 @@ def fetch_rakuten_items(app_id: str, affiliate_id: str, keyword: str) -> list:
         "hits": 10,
         "format": "json"
     }
+
+    if access_key:
+        print(f"Debug: RAKUTEN_ACCESS_KEY is set. Length: {len(access_key)}")
+        params["accessKey"] = access_key
 
     url = f"{base_url}?{urllib.parse.urlencode(params)}"
     try:
@@ -120,6 +125,7 @@ def main():
     
     # 1. Configurations
     rakuten_app_id = os.environ.get("RAKUTEN_APP_ID", "DUMMY_APP_ID")
+    rakuten_access_key = os.environ.get("RAKUTEN_ACCESS_KEY", "")
     rakuten_affiliate_id = os.environ.get("RAKUTEN_AFFILIATE_ID", "DUMMY_AFFILIATE_ID")
     
     hatena_id = os.environ.get("HATENA_ID", "DUMMY_HATENA_ID")
@@ -139,7 +145,7 @@ def main():
     print(f"Loaded {len(posted_cache)} posted items from cache.")
 
     # 4. Fetch Items
-    items = fetch_rakuten_items(rakuten_app_id, rakuten_affiliate_id, keyword)
+    items = fetch_rakuten_items(rakuten_app_id, rakuten_access_key, rakuten_affiliate_id, keyword)
     if not items:
         print("Error: No items fetched from Rakuten Ichiba API.")
         sys.exit(1)
