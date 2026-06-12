@@ -15,77 +15,34 @@ class ArticleGenerator:
         pass
 
     def translate_synopsis(self, text: str) -> str:
-        """Translates the given synopsis to natural Japanese if it is in English or needs formatting."""
-        if not text:
-            return ""
-            
-        prompt = f"""以下の文章（商品の紹介文・説明文）を、魅力的で自然な日本語に翻訳および整形してください。
-もし元の文章が英語の場合は、日本語の丁寧な文章に翻訳してください。
-既に日本語の場合は、より読みやすく魅力的な紹介・あらすじに整えてください。
-
-【元の文章】:
-{text}
-
-【出力ルール（厳格）】:
-- 翻訳・整形後の日本語の紹介・あらすじ本文のみを出力してください。
-- 挨拶や余計な解説（「以下が翻訳です」など）は絶対に含めないでください。
-"""
-
-        generators = [
-            ("Gemini API (Free Tier)", self._generate_with_gemini),
-            ("GitHub Models API (Free for Actions/PAT)", self._generate_with_github_models),
-            ("OpenRouter Free API", self._generate_with_openrouter),
-            ("Hugging Face API (Free Tier)", self._generate_with_huggingface),
-            ("Pollinations AI Free (No Key Required)", self._generate_with_pollinations),
-        ]
-
-        translated_text = None
-        for name, gen_fn in generators:
-            try:
-                print(f"Attempting synopsis translation with {name}...")
-                res = gen_fn(prompt)
-                if res and len(res.strip()) > 10:
-                    translated_text = res.strip()
-                    print(f"Successfully translated synopsis using {name}!")
-                    break
-            except Exception as e:
-                print(f"Error calling {name} for translation: {e}. Trying next fallback...")
-
-        if not translated_text:
-            print("WARNING: All translation APIs failed. Using original text.")
-            return text
-
-        translated_text = re.sub(r"^(はい、|承知いたしました。|以下が翻訳です。|以下に日本語訳を出力します。|翻訳結果：|翻訳：)\s*", "", translated_text)
-        return translated_text
+        # 呼び出しは不要となりましたが、互換性のためにメソッドは残しておきます
+        return text
 
     def generate_review_article(self, item: Dict[str, Any]) -> str:
         title = item.get("title", "")
         clean_title = item.get("clean_title", title)
-        features = "\n".join([f"- {f}" for f in item.get("features", [])])
         price = item.get("price", "")
         url = item.get("url", "")
+        caption = item.get("caption", "")
 
-        prompt = f"""以下の楽天市場ホビー商品の商品情報を元に、はてなブログの「編集部おすすめ」に選出されるレベルの、熱量が高く独自の視点に満ちた個人ブログのレビュー記事を執筆してください。
-単なる仕様説明や一般的な評価の羅列（テンプレ記事）を徹底的に排除し、あなたの「偏愛」や「ストーリー」を感じさせる、唯一無二の記事に仕上げてください。
+        prompt = f"""あなたは「新作ホビー・ガチャ・食玩の最速予約・在庫復活」を伝えるプロの速報編集者です。
+以下の楽天市場ホビー商品の情報を元に、読者（コレクター）に向けた速報ブログ記事を執筆してください。
+自分語りやエッセイ風の書き出し、不自然なポエムは【絶対に禁止】です。
 
 【商品名】: {title}
 【価格】: {price}
-【主な特徴】:
-{features}
-【商品検索URL】: {url}
+【商品の説明】: {caption}
 
-【執筆の構成ルール（見出しの自律設計）】:
-- 固定された章構成（「はじめに」「デザイン」など）は使用しないでください。商品の特性やあなたが最も伝えたい魅力に合わせ、読者を惹きつけるキャッチーな見出し（3〜5個程度）を自律的に考案してください（例: 「## ◯◯という沼にハマる」「## コレクター魂を揺さぶるポイント」など）。
-- 記事の導入は、製品の無味乾燥な紹介ではなく、あなたの日常のこだわりや、そのホビーを愛する背景などの「ストーリー（エッセイ風の書き出し）」から始めてください。
-- 「独自のこだわり評価軸」を必ず1つ設定して語ってください（例: 「このホビーがもたらす癒やし」「ディスプレイした瞬間の高揚感」など）。
-- デメリットや「ここは惜しい！」というポイントを、スペック批判ではなく、手に入れたリアルな感想・本音として包みゼロから書いてください。
+【出力の構成ルール（厳格遵守）】:
+① 記事のタイトル（【速報】【在庫復活】などの煽り文句＋商品名）を <h2> タグで囲んで出力してください。
+② どんなキャラクターのどんな商品なのか、一目でわかる簡潔な説明（2〜3行程度）を書いてください。
+③ コレクター必見の魅力やおすすめポイントを、必ず <ul> と <li> タグを使った【3つの箇条書き】にしてください。
+④ 最後に「人気キャラのため一瞬で売り切れる可能性があります！急いでチェックしてください！」という強い購入への誘導文を書いてください。
 
-【執筆の厳格なルール（最優先）】:
-1. ブログ記事の**本文のみ**を出力してください。挨拶文（「承知しました」「以下が記事です」など）や、記事の解説、まとめのアドバイス（「以上のように、自然な言葉遣い〜」「購入につなげることができます」など）は**絶対に1文字も出力しないでください**。記事の最後は「ぜひチェックしてみてください！」などの読者へのメッセージで終了させてください。
-2. 「アフィリエイト」「アフィリンク」「誘導」「広告」といった、読者に商業的な意図を直接感じさせる言葉は**見出し・本文含め、絶対に記事内に出力しないでください**。
-3. 記事はMarkdown（マークダウン）形式で執筆してください。見出しは「## 」「### 」を使用し、箇条書きは「- 」を使用してください。
-4. 商品リンクは、文末付近に自然な形で `[楽天市場で「{clean_title}」の商品をチェックする]({url})` のようにMarkdownのリンク記法で埋め込んでください。
-5. AI特有の「〜はいかがでしょうか」「〜をご紹介します」「〜と言えるでしょう」「〜の特徴を持っています」といった説明調のテンプレフレーズを多用せず、人間が強いこだわりを持って書いたレビューのリアリティと熱量のある文体で書いてください。
+【執筆の厳格なルール】:
+1. 出力はブログの【本文HTMLのみ】にしてください。余計な挨拶や解説（「はい、以下が記事です」など）は絶対に1文字も含めないでください。
+2. スマホで読みやすいように、重要な部分やアピールポイントは適宜 <b> タグで囲んで太字に強調してください。
+3. すべてHTMLタグを使用して整形した状態で出力してください（Markdown記法ではなく直接HTMLタグを使用すること）。
 """
 
         generators = [
@@ -101,7 +58,7 @@ class ArticleGenerator:
             try:
                 print(f"Attempting article generation with {name}...")
                 res = gen_fn(prompt)
-                if res and len(res.strip()) > 300:
+                if res and len(res.strip()) > 100:
                     raw_article = res.strip()
                     print(f"Successfully generated article using {name}!")
                     break
@@ -112,45 +69,34 @@ class ArticleGenerator:
 
         if not raw_article:
             if os.environ.get("GITHUB_ACTIONS") == "true":
-                raise RuntimeError("All free LLM APIs failed to generate a valid review article in GitHub Actions. Cannot proceed to prevent posting spam templates.")
+                raise RuntimeError("All free LLM APIs failed to generate a valid review article in GitHub Actions.")
             else:
-                print("WARNING: All free LLM APIs failed or are rate-limited. Since this is a local dry-run, generating dummy review text to verify downstream components.")
-                raw_article = f"""## ◯◯という沼にハマる
-これはローカル開発環境でのドライラン検証用のテスト記事です。現在、すべてのオンライン無料LLM APIが利用できませんでした。
+                print("WARNING: All free LLM APIs failed or are rate-limited. Since this is a local dry-run, generating dummy review text.")
+                raw_article = f"""<h2>【速報】{clean_title} の予約受付がスタート！</h2>
+<p>大注目の最新アイテム <b>{clean_title}</b> が楽天市場で予約開始されました！ファンにはたまらない魅力が詰まった大人気ホビーです。</p>
+<ul>
+  <li><b>圧倒的な造形美</b>：細部までこだわり抜かれたハイクオリティなクオリティを実現！</li>
+  <li><b>豪華セット仕様</b>：全種類コンプリート可能なファン必見のパッケージ構成！</li>
+  <li><b>限定デザイン</b>：ここでしか手に入らないプレミアムなコレクターズアイテム！</li>
+</ul>
+<p><b>人気キャラのため一瞬で売り切れる可能性があります！急いでチェックしてください！</b></p>"""
 
-## 手に入れた瞬間の高揚感
-このホビーは優れた造形とディテールを兼ね備えています。
-
-## コレクションとしての評価
-テスト特徴1、特徴2、特徴3により、非常に高いクオリティを誇ります。
-
-[楽天市場で「{clean_title}」の商品をチェックする]({url})
-ぜひチェックしてみてください！"""
-
+        # メタ文言のクリーニング
         raw_article = re.sub(r"^(はい、|承知いたしました。|以下が商品紹介記事です。|以下に記事を出力します。|以下が執筆した記事です。)\s*", "", raw_article)
-        meta_markers = [
-            "以上のように",
-            "このように、",
-            "自然な言葉遣いと",
-            "アフィリエイトリンクへの",
-            "読者は商品の魅力を理解し",
-            "購入につなげることができます"
-        ]
+        meta_markers = ["以上のように", "このように、", "アフィリエイトリンクへの"]
         for marker in meta_markers:
             if marker in raw_article:
-                print(f"Truncating AI meta-explanation found at marker: '{marker}'")
                 raw_article = raw_article.split(marker)[0].rstrip()
 
-        import markdown
-        html_output = markdown.markdown(raw_article, extensions=['nl2br'])
-        
+        # すでにHTMLで出力されているため、Markdown変換は行わずそのまま返します
+        # リンクの target="_blank" 付与処理のみ実行します
         def add_target_blank(match):
             tag = match.group(0)
             if 'target=' not in tag:
                 tag = tag.replace('<a ', '<a target="_blank" rel="noopener noreferrer" ')
             return tag
             
-        html_output = re.sub(r'<a\s+[^>]*>', add_target_blank, html_output)
+        html_output = re.sub(r'<a\s+[^>]*>', add_target_blank, raw_article)
         return html_output
 
     def _generate_with_gemini(self, prompt: str) -> Optional[str]:
@@ -163,7 +109,7 @@ class ArticleGenerator:
         payload = {
             "contents": [{
                 "parts": [{
-                    "text": "あなたはホビー・おもちゃに並々ならぬこだわりを持つ個人ブロガーです。商品のスペック説明は最小限にし、この商品をディスプレイしたり手に入れたことで日常がどう劇的に変わったか（ベネフィット）を、熱量と独自の視点で語ってください。他人事の解説調ではなく、書き手の顔が見える一人称の熱い語り口で執筆してください。指示された厳格なルールと章構成を完全に守り、余計な挨拶や解説を一切含まないブログ本文のみを出力します。\n\n" + prompt
+                    "text": "あなたはホビー速報ブログのプロ編集者です。指示された厳格なルールを遵守し、余計な挨拶や解説を一切含まないHTML本文のみを出力します。\n\n" + prompt
                 }]
             }],
             "generationConfig": {
@@ -178,8 +124,6 @@ class ArticleGenerator:
                 return data["candidates"][0]["content"]["parts"][0]["text"]
             except KeyError:
                 return None
-        else:
-            print(f"Gemini API returned status {resp.status_code}: {resp.text}")
         return None
 
     def _generate_with_github_models(self, prompt: str) -> Optional[str]:
@@ -195,7 +139,7 @@ class ArticleGenerator:
         payload = {
             "model": "gpt-4o-mini",
             "messages": [
-                {"role": "system", "content": "あなたはホビー・おもちゃに並々ならぬこだわりを持つ個人ブロガーです。商品のスペック説明は最小限にし、この商品をディスプレイしたり手に入れたことで日常がどう劇的に変わったか（ベネフィット）を、熱量と独自の視点で語ってください。他人事の解説調ではなく、書き手の顔が見える一人称の熱い語り口で執筆してください。指示されたルールを厳格に守り、日本語で前置き・後書きなしでブログ本文のみを出力してください。"},
+                {"role": "system", "content": "あなたはホビー速報ブログのプロ編集者です。指示されたルールを厳格に守り、日本語で前置き・後書きなしでHTML本文のみを出力してください。"},
                 {"role": "user", "content": prompt}
             ],
             "temperature": 0.7
@@ -206,8 +150,6 @@ class ArticleGenerator:
                 return resp.json()["choices"][0]["message"]["content"]
             except (KeyError, IndexError):
                 return None
-        else:
-            print(f"GitHub Models API returned status {resp.status_code}: {resp.text}")
         return None
 
     def _generate_with_openrouter(self, prompt: str) -> Optional[str]:
@@ -223,7 +165,7 @@ class ArticleGenerator:
         payload = {
             "model": "google/gemma-2-9b-it:free",
             "messages": [
-                {"role": "system", "content": "あなたはホビー・おもちゃに並々ならぬこだわりを持つ個人ブロガーです。商品のスペック説明は最小限にし、この商品をディスプレイしたり手に入れたことで日常がどう劇的に変わったか（ベネフィット）を、熱量と独自の視点で語ってください。他人事の解説調ではなく、書き手の顔が見える一人称の熱い語り口で執筆してください。指示された厳格なルールを守り、余計な解説を一切含まない日本語ブログ本文のみを出力します。"},
+                {"role": "system", "content": "あなたはホビー速報ブログのプロ編集者です。指示された厳格なルールを守り、余計な解説を一切含まない日本語のHTML本文のみを出力します。"},
                 {"role": "user", "content": prompt}
             ],
             "temperature": 0.7
@@ -235,8 +177,6 @@ class ArticleGenerator:
                 return data["choices"][0]["message"]["content"]
             except KeyError:
                 return None
-        else:
-            print(f"OpenRouter API returned status {resp.status_code}: {resp.text}")
         return None
 
     def _generate_with_huggingface(self, prompt: str) -> Optional[str]:
@@ -251,7 +191,7 @@ class ArticleGenerator:
             "Content-Type": "application/json"
         }
         payload = {
-            "inputs": f"<|im_start|>system\nあなたはホビー・おもちゃに並々ならぬこだわりを持つ個人ブロガーです。商品のスペック説明は最小限にし、この商品をディスプレイしたり手に入れたことで日常がどう劇的に変わったか（ベネフィット）を、熱量と独自の視点で語ってください。他人事の解説調ではなく、書き手の顔が見える一人称の熱い語り口で執筆してください。日本語で余計な前置きや後書きなしに、本文のみを出力します。<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
+            "inputs": f"<|im_start|>system\nあなたはホビー速報ブログのプロ編集者です。日本語で余計な前置きや後書きなしに、HTML本文のみを出力します。<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n",
             "parameters": {
                 "max_new_tokens": 1500,
                 "temperature": 0.7
@@ -267,8 +207,6 @@ class ArticleGenerator:
                 return text
             except (KeyError, IndexError):
                 return None
-        else:
-            print(f"Hugging Face API returned status {resp.status_code}: {resp.text}")
         return None
 
     def _generate_with_pollinations(self, prompt: str) -> Optional[str]:
@@ -278,22 +216,18 @@ class ArticleGenerator:
         for attempt, model in enumerate(models):
             payload = {
                 "messages": [
-                    {"role": "system", "content": "あなたはホビー・おもちゃに並々ならぬこだわりを持つ個人ブロガーです。商品のスペック説明は最小限にし、この商品をディスプレイしたり手に入れたことで日常がどう劇的に変わったか（ベネフィット）を、熱量と独自の視点で語ってください。他人事の解説調ではなく、書き手の顔が見える一人称の熱い語り口で執筆してください。指示されたルールを厳格に守り、日本語で前置き・後書きなしでブログ本文のみを出力してください。"},
+                    {"role": "system", "content": "あなたはホビー速報ブログのプロ編集者です。指示されたルールを厳格に守り、日本語で前置き・後書きなしでHTML本文のみを出力してください。"},
                     {"role": "user", "content": prompt}
                 ],
                 "model": model
             }
             try:
-                print(f"Trying Pollinations AI POST (model: {model}, attempt: {attempt+1})...")
                 resp = requests.post(url, json=payload, timeout=25)
-                if resp.status_code == 200 and len(resp.text.strip()) > 300:
+                if resp.status_code == 200 and len(resp.text.strip()) > 100:
                     return resp.text
                 elif resp.status_code == 429:
-                    print(f"Pollinations AI {model} returned 429. Waiting {attempt+2}s before trying next model...")
                     time.sleep(attempt+2)
-                else:
-                    print(f"Pollinations AI {model} returned status {resp.status_code}")
-            except Exception as e:
-                print(f"Pollinations POST attempt for {model} failed: {e}")
+            except Exception:
+                pass
             
         return None

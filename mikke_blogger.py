@@ -9,7 +9,6 @@ import random
 import re
 from hatena_api import HatenaAPI
 from article_generator import ArticleGenerator
-from image_generator import ImageGenerator
 
 CACHE_FILE = "posted_cache.txt"
 
@@ -88,12 +87,19 @@ def fetch_rakuten_items(app_id: str, access_key: str, affiliate_id: str, keyword
             for entry in data.get("Items", []):
                 item_data = entry.get("Item", {})
                 if item_data:
+                    # 商品画像URLの取得（中画像URLリストの最初を取得）
+                    image_url = ""
+                    medium_images = item_data.get("mediumImageUrls", [])
+                    if medium_images and isinstance(medium_images, list) and len(medium_images) > 0:
+                        image_url = medium_images[0].get("imageUrl", "")
+                    
                     items.append({
                         "title": item_data.get("itemName"),
                         "itemCaption": item_data.get("itemCaption", ""),
                         "affiliateUrl": item_data.get("affiliateUrl"),
                         "itemCode": item_data.get("itemCode"), # itemNumberの代用として一意のitemCodeを使用
-                        "price": f"{item_data.get('itemPrice', '')}円"
+                        "price": f"{item_data.get('itemPrice', '')}円",
+                        "imageUrl": image_url
                     })
             return items
     except urllib.error.HTTPError as e:
@@ -116,7 +122,8 @@ def get_mock_items(keyword: str) -> list:
             "itemCaption": f"ファン必見！大人気『{keyword}』のコレクションフィギュアが遂に登場。細部までこだわり抜かれたハイクオリティな造形と、カラフルな塗装が特徴です。全種類コンプリート可能な豪華セット！お部屋にディスプレイして癒やしの空間を演出しましょう。",
             "affiliateUrl": "https://r18.afl.rakuten.co.jp/mock_hobby",
             "itemCode": "mock_hobby_001",
-            "price": "3,980円"
+            "price": "3,980円",
+            "imageUrl": "https://images.unsplash.com/photo-1558882224-cca166733360?w=800&auto=format&fit=crop&q=80"
         }
     ]
 
@@ -166,78 +173,39 @@ def main():
 
     print(f"Selected Item to Post: {target_item['title']} (Code: {target_item['itemCode']})")
 
-    # 6. Generate Eyecatch Image
-    print("Generating Eyecatch Image...")
-    img_gen = ImageGenerator()
-    eyecatch_path = "eyecatch.png"
-    
-    # カテゴリ判定
-    category = "toy"
-    title_lower = target_item["title"].lower()
-    if any(w in title_lower for w in ["ガチャガチャ", "カプセルトイ"]):
-        category = "capsule"
-    elif any(w in title_lower for w in ["フィギュア", "マスコット", "ウエハース"]):
-        category = "figure"
-
-    img_gen.generate_eyecatch(
-        prompt=target_item["title"],
-        output_path=eyecatch_path,
-        category=category
-    )
-
-    # 7. Generate Article Content
+    # 6. Generate Article Content
     print("Generating Article Content using LLM...")
     article_gen = ArticleGenerator()
     article_gen.load_model()
     
     title_raw = target_item["title"]
     clean_title = re.sub(r'【[^】]+】|\[[^\]]+\]', '', title_raw).strip()
-
-    excerpt = target_item['itemCaption'][:150] + "..." if len(target_item['itemCaption']) > 150 else target_item['itemCaption']
-    mapped_features = [
-        f"注目のホビー・コレクションアイテム『{clean_title}』の紹介",
-        f"商品の見どころ・あらすじ: {excerpt}"
-    ]
     
     generator_input_item = {
         "title": target_item["title"],
         "clean_title": clean_title,
-        "features": mapped_features,
         "price": target_item["price"],
-        "url": target_item["affiliateUrl"]
+        "url": target_item["affiliateUrl"],
+        "caption": target_item["itemCaption"]
     }
     
     llm_section = article_gen.generate_review_article(generator_input_item)
 
-    # 8. Setup Hatena Client and Upload Eyecatch
+    # 7. Setup Hatena Client
     hatena_client = HatenaAPI(
         hatena_id=hatena_id,
         blog_id=blog_id,
         api_key=hatena_api_key
     )
 
-    uploaded_image_url = hatena_client.upload_image_to_fotolife(eyecatch_path)
-    if not uploaded_image_url:
-        print("Fotolife upload failed or skipped. Using Unsplash fallback in HTML.")
-        uploaded_image_url = img_gen._select_unsplash_image_url(
-            target_item["title"], 
-            category=category
-        )
-
-    # Translate/Format description
-    print("Translating/formatting description...")
-    translated_synopsis = article_gen.translate_synopsis(target_item['itemCaption'])
+    # 実際の商品の画像URLを直接使用
+    product_image_url = target_item.get("imageUrl", "")
+    if not product_image_url:
+        product_image_url = "https://images.unsplash.com/photo-1558882224-cca166733360?w=800&auto=format&fit=crop&q=80" # フォールバック
 
     # Construct HTML article
-    img_html = f'<div style="text-align: center; margin: 20px 0;"><img src="{uploaded_image_url}" alt="{target_item["title"]}" style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.08);"></div>'
+    img_html = f'<div style="text-align: center; margin: 20px 0;"><img src="{product_image_url}" alt="{target_item["title"]}" style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.08);"></div>'
     
-    synopsis_html = f"""
-<h3>商品紹介・あらすじ</h3>
-<div style="background: #f9f9f9; padding: 18px 20px; border-left: 5px solid #FF5E00; margin: 20px 0; line-height: 1.6; color: #444; border-radius: 0 8px 8px 0; font-size: 15px;">
-    {translated_synopsis}
-</div>
-"""
-
     cta_html = f"""
 <div style="text-align: center; margin: 40px 0 20px 0;">
     <a href="{target_item['affiliateUrl']}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #FF5E00; color: #fff; padding: 16px 32px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 30px; box-shadow: 0 4px 15px rgba(255,94,0,0.3); text-align: center;">
@@ -257,8 +225,17 @@ def main():
 </script>
 """
 
-    article_content = f"{ga_html}\n{img_html}\n{llm_section}\n{synopsis_html}\n{cta_html}"
+    # LLMセクション、商品画像、アフィリエイトリンクの3要素のみにスリム化
+    article_content = f"{ga_html}\n{img_html}\n{llm_section}\n{cta_html}"
+    
+    # 記事タイトルはLLMで生成されたものから抽出（<h2>タグの中身）を試みる
     blog_title = f"【注目ホビー】『{clean_title}』が登場！魅力・みどころまとめ"
+    match = re.search(r'<h2>(.*?)</h2>', llm_section)
+    if match:
+        blog_title = match.group(1).strip()
+        # 本文側のh2タグの重複を避けるためトリミング
+        llm_section = llm_section.replace(match.group(0), "")
+        article_content = f"{ga_html}\n{img_html}\n{llm_section}\n{cta_html}"
 
     # 9. Post to Hatena Blog
     success = hatena_client.post_entry(
