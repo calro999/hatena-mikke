@@ -73,6 +73,10 @@ def fetch_rakuten_items(app_id: str, access_key: str, affiliate_id: str, keyword
         "format": "json"
     }
 
+    if not access_key and len(app_id) == 36:
+        print("Warning: RAKUTEN_ACCESS_KEY is empty but RAKUTEN_APP_ID is 36 chars. Using it as accessKey.")
+        access_key = app_id
+
     if access_key:
         print(f"Debug: RAKUTEN_ACCESS_KEY is set. Length: {len(access_key)}")
         params["accessKey"] = access_key
