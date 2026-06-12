@@ -47,9 +47,9 @@ def save_cache(item_number: str):
 def generate_keyword() -> str:
     """AリストとBリストからランダムにキーワードを生成する。"""
     char = random.choice(CHARACTERS)
-    if char == "スクイーズ":
-        # スクイーズ（単体指定用）
-        return "スクイーズ"
+    if char in ["スクイーズ", "サンリオ"]:
+        # スクイーズ、サンリオ（単体指定用）
+        return char
     hobby = random.choice(HOBBIES)
     return f"{char} {hobby}"
 
@@ -151,10 +151,19 @@ def main():
     posted_cache = load_cache()
     print(f"Loaded {len(posted_cache)} posted items from cache.")
 
-    # 4. Fetch Items
-    items = fetch_rakuten_items(rakuten_app_id, rakuten_access_key, rakuten_affiliate_id, keyword)
+    # 4. Fetch Items (With Retry on Empty Result)
+    max_retries = 3
+    items = []
+    for attempt in range(max_retries):
+        items = fetch_rakuten_items(rakuten_app_id, rakuten_access_key, rakuten_affiliate_id, keyword)
+        if items:
+            break
+        print(f"Warning: No items fetched for keyword '{keyword}'. Retrying with a new keyword...")
+        keyword = generate_keyword()
+        print(f"New Generated Keyword: {keyword}")
+
     if not items:
-        print("Error: No items fetched from Rakuten Ichiba API.")
+        print("Error: No items fetched from Rakuten Ichiba API after multiple retries.")
         sys.exit(1)
 
     print(f"Fetched {len(items)} items. Checking for new items...")
