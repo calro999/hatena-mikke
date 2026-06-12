@@ -62,7 +62,7 @@ def fetch_rakuten_items(app_id: str, access_key: str, affiliate_id: str, keyword
     print(f"Debug: RAKUTEN_APP_ID length is {len(app_id)}")
     print(f"Searching with Keyword: {keyword}")
 
-    base_url = "https://openapi.rakuten.co.jp/services/api/IchibaItem/Search/20220601"
+    base_url = "https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20260401"
     params = {
         "applicationId": app_id,
         "affiliateId": affiliate_id,
