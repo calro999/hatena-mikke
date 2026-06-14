@@ -24,3 +24,4 @@ goldendrop:10002117
 festival-plaza:10066360
 lunabright:10000010
 grengren:10010128
+wao-shop:10232471
