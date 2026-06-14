@@ -21,3 +21,4 @@ mirakikaku:10028041
 realize-store:10551860
 ace-1224:10007810
 goldendrop:10002117
+festival-plaza:10066360
