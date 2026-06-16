@@ -39,3 +39,4 @@ auc-treasuremarket:10054009
 festival-plaza:10067595
 aromacoffee:10051842
 gosunwood:10006815
+auc-yuyou:10214912
