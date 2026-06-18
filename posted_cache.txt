@@ -51,3 +51,4 @@ auc-toysanta:10378787
 lechien:10019880
 morimotosangyo:10000305
 realize-store:10122287
+kawabecompany:10000601
