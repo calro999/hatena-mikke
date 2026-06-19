@@ -54,3 +54,4 @@ realize-store:10122287
 kawabecompany:10000601
 auc-treasuremarket:10044647
 auc-yuyou:10196579
+amiami:13058113
