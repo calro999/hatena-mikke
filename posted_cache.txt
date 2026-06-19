@@ -59,3 +59,4 @@ festival-plaza:10056509
 auc-treasuremarket:10053290
 auc-treasuremarket:10051888
 mirakikaku:10019589
+mini2x:10000554
