@@ -62,3 +62,4 @@ mirakikaku:10019589
 mini2x:10000554
 kishi-gum:10028667
 party-honpo:10526004
+zakkamarche:10000699
