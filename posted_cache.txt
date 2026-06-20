@@ -66,3 +66,4 @@ zakkamarche:10000699
 festival-plaza:10058987
 kishi-gum:10032584
 auc-yuyou:10198366
+realize-store:10093673
