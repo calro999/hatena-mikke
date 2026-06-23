@@ -85,3 +85,4 @@ exicoast02:10006663
 festival-plaza:10067037
 mm-pop:10313930
 kishi-gum:10032498
+goldstar:10046916
