@@ -88,3 +88,4 @@ kishi-gum:10032498
 goldstar:10046916
 likaman:10047564
 realize-store:10093691
+auc-treasuremarket:10049473
