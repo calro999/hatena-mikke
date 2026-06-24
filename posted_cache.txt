@@ -90,3 +90,4 @@ likaman:10047564
 realize-store:10093691
 auc-treasuremarket:10049473
 sanyodo-shop:10044468
+auc-yuyou:10209860
