@@ -93,3 +93,4 @@ sanyodo-shop:10044468
 auc-yuyou:10209860
 yoimonoplaza:10000308
 kishi-gum:10032468
+realize-store:10626715
