@@ -107,3 +107,4 @@ festival-plaza:10067038
 realize-store-2:10463024
 festival-plus:10071699
 bellevie-shop:10003670
+value-club:10011292
