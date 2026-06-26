@@ -105,3 +105,4 @@ mizota:10023870
 wasshoi-mura:10025031
 festival-plaza:10067038
 realize-store-2:10463024
+festival-plus:10071699
