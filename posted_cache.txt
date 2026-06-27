@@ -110,3 +110,4 @@ bellevie-shop:10003670
 value-club:10011292
 saitamatoy:10022242
 festival-plaza:10060051
+saitamatoy:10020715
