@@ -112,3 +112,4 @@ saitamatoy:10022242
 festival-plaza:10060051
 saitamatoy:10020715
 auc-yuyou:10167047
+wasshoi-mura:10024718
