@@ -134,3 +134,4 @@ auc-yuyou:10201483
 niki:10032673
 auc-yuyou:10171307
 auc-yuyou:10197823
+kishi-gum:10032600
