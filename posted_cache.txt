@@ -168,3 +168,4 @@ realize-store:10606213
 shizuya:10000973
 festival-plaza:10067222
 auc-yuyou:10195134
+auc-isauto:10007081
