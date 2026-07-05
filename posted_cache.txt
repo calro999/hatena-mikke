@@ -179,3 +179,4 @@ anicharaya:10262953
 aromacoffee:10054786
 realize-store:10626726
 rol-shop:10031259
+auc-yuyou:10202045
