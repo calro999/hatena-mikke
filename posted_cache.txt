@@ -253,3 +253,4 @@ rshopfujitv:10019969
 exicoast02:10005529
 wasshoi-mura:10020380
 auc-treasuremarket:10054213
+kishi-gum:10032664
