@@ -258,3 +258,4 @@ festival-plus:10068916
 auc-modelbase-z:10009837
 shizuya:10000326
 shizuya:10000238
+auc-isauto:10006772
