@@ -257,3 +257,4 @@ kishi-gum:10032664
 festival-plus:10068916
 auc-modelbase-z:10009837
 shizuya:10000326
+shizuya:10000238
