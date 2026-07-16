@@ -259,3 +259,4 @@ auc-modelbase-z:10009837
 shizuya:10000326
 shizuya:10000238
 auc-isauto:10006772
+auc-yuyou:10195735
