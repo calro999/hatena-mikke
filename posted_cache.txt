@@ -264,3 +264,4 @@ auc-modelbase-z:10006032
 wasshoi-mura:10023701
 value-club:10011774
 festival-plaza:10067041
+hobbyzakka-cha3:10008222
