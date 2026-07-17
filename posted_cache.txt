@@ -271,3 +271,4 @@ auc-fukumishouji:10026385
 realize-store-2:10463017
 auc-modelbase-z:10011202
 gmarket-japan:10304930
+festival-plaza:10067031
