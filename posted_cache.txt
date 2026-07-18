@@ -274,3 +274,4 @@ gmarket-japan:10304930
 festival-plaza:10067031
 realize-store-2:10155296
 auc-sunny:10015867
+festival-plaza:10065125
