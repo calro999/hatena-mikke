@@ -287,3 +287,4 @@ manianomori:10000766
 auc-modelbase-z:10001002
 shizuya:10000328
 party-honpo:10526074
+auc-yuyou:10190582
