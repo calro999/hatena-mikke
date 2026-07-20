@@ -295,3 +295,4 @@ auc-treasuremarket:10054300
 geexcollection:10004119
 mirakikaku:10020928
 wasshoi-mura:10025067
+realize-store:10534380
