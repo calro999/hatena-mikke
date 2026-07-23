@@ -88,6 +88,14 @@ class ArticleGenerator:
             if marker in raw_article:
                 raw_article = raw_article.split(marker)[0].rstrip()
 
+        # Step 2: 誤字脱字チェック & SEO / AI-SEO / GEO ブラッシュアップ工程
+        polished_article = self.proofread_and_optimize(raw_article, title)
+        if polished_article and len(polished_article.strip()) > 100:
+            raw_article = polished_article
+
+        # Step 3: 途中切れ・力尽き防止チェック & 完結補正
+        raw_article = self.ensure_complete_article(raw_article)
+
         # すでにHTMLで出力されているため、Markdown変換は行わずそのまま返します
         # リンクの target="_blank" 付与処理のみ実行します
         def add_target_blank(match):
@@ -98,6 +106,60 @@ class ArticleGenerator:
             
         html_output = re.sub(r'<a\s+[^>]*>', add_target_blank, raw_article)
         return html_output
+
+    def proofread_and_optimize(self, content: str, title: str) -> str:
+        """誤字脱字の最終チェックと、SEO, AI-SEO (AI検索対応), GEO (Generative Engine Optimization) 的なブラッシュアップを行う工程。"""
+        proofread_prompt = f"""以下のホビー速報ブログ原稿（HTML形式）に対して、誤字脱字チェックとSEO・AI-SEO・GEO最適化を行い、最高品質の完成原稿にブラッシュアップしてください。
+
+【対象商品名】: {title}
+
+【原稿】:
+{content}
+
+【ブラッシュアップ要件（絶対遵守）】:
+1. 誤字脱字・不自然なHTML構造・日本語の誤りを校正してください。
+2. SEO & AI-SEO (GEO) 最適化:
+   - 読者（コレクター）が知りたい商品の魅力・在庫情報をHTMLタグ（<h2>, <ul>, <li>, <b>）で明確に構造化してください。
+   - 不要なポエムや挨拶文を排除し、ファクトと商品の価値を分かりやすく記述してください。
+3. 途中で途切れることのないよう、完全に完結させてください。
+4. HTML形式のまま、余計な前置き・解説なしで本文のみを出力してください。
+"""
+        generators = [
+            ("Gemini API (Proofread)", self._generate_with_gemini),
+            ("GitHub Models API (Proofread)", self._generate_with_github_models),
+            ("OpenRouter Free API (Proofread)", self._generate_with_openrouter),
+        ]
+
+        for name, gen_fn in generators:
+            try:
+                print(f"Attempting proofread and SEO/GEO optimization with {name}...")
+                res = gen_fn(proofread_prompt)
+                if res and len(res.strip()) > 100:
+                    res_cleaned = re.sub(r"^(はい、|承知いたしました。|以下が校正後の記事です。|以下がブラッシュアップ後の原稿です。)\s*", "", res.strip())
+                    print(f"Successfully proofread and optimized article with {name}!")
+                    return res_cleaned
+            except Exception as e:
+                print(f"Proofread failed with {name}: {e}. Continuing with original.")
+
+        return content
+
+    def ensure_complete_article(self, content: str) -> str:
+        """文章が途中で力尽きて切れている場合に、末尾をきれいに修復・完結させる。"""
+        content = content.strip()
+        valid_endings = ("。", "！", "？", "!", "?", "</p>", "</ul>", "</div>", "</b>", "</i>")
+        
+        if not content.endswith(valid_endings):
+            print("WARNING: Article detected as truncated/incomplete at the end. Truncating incomplete part and closing tags properly.")
+            last_period = max(content.rfind("。"), content.rfind("！"), content.rfind("</p>"), content.rfind("</ul>"))
+            if last_period > len(content) * 0.5:
+                content = content[:last_period + 1]
+            else:
+                content = content + "</p>"
+
+        if "急いでチェックしてください" not in content and "ご覧ください" not in content:
+            content += "<p><b>人気キャラのため一瞬で売り切れる可能性があります！急いでチェックしてください！</b></p>"
+
+        return content
 
     def _generate_with_gemini(self, prompt: str) -> Optional[str]:
         api_key = os.environ.get("GEMINI_API_KEY")
@@ -114,7 +176,7 @@ class ArticleGenerator:
             }],
             "generationConfig": {
                 "temperature": 0.7,
-                "maxOutputTokens": 2000
+                "maxOutputTokens": 4000
             }
         }
         resp = requests.post(url, headers=headers, json=payload, timeout=30)
