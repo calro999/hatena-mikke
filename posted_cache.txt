@@ -325,3 +325,4 @@ auc-modelbase-z:10010222
 hobbyzakka-cha3:10006580
 festival-plaza:10067546
 auc-modelbase-z:10011122
+auc-isauto:10005701
