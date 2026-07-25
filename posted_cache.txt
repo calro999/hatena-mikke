@@ -335,3 +335,4 @@ auc-modelbase-z:10005830
 auc-fukumishouji:10026897
 auc-modelbase-z:10011278
 exicoast02:10005266
+meiaistore:10000908
