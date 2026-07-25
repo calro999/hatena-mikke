@@ -332,3 +332,4 @@ aoi-depart:10346120
 smltrading:10000768
 auc-yumishop:10028536
 auc-modelbase-z:10005830
+auc-fukumishouji:10026897
