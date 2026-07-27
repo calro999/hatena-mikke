@@ -343,3 +343,4 @@ auc-fukumishouji:10026916
 festival-plaza:10067223
 aromacoffee:10049918
 meiaistore:10001407
+auc-yuyou:10196099
