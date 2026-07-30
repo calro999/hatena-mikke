@@ -362,3 +362,4 @@ manmaru-fresta:10193427
 gosunwood:10008249
 wasshoi-mura:10025090
 auc-modelbase-z:10010738
+kishi-gum:10032618
