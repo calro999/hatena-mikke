@@ -366,3 +366,4 @@ kishi-gum:10032618
 auc-hanabiya-gekiyasu:10007134
 festival-plaza:10060009
 mirakikaku:10028693
+exicoast02:10005870
