@@ -370,3 +370,4 @@ exicoast02:10005870
 wasshoi-mura:10025089
 value-club:10011817
 festival-plaza:10064393
+exicoast02:10004985
