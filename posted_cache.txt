@@ -373,3 +373,4 @@ festival-plaza:10064393
 exicoast02:10004985
 gosunwood:10007528
 aoi-depart:10371721
+realize-store-2:10155342
