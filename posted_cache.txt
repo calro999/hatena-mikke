@@ -376,3 +376,4 @@ aoi-depart:10371721
 realize-store-2:10155342
 festival-plaza:10065480
 exicoast02:10007767
+kishi-gum:10032661
