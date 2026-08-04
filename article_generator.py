@@ -46,6 +46,7 @@ class ArticleGenerator:
 """
 
         generators = [
+            ("Groq API", self._generate_with_groq),
             ("Gemini API (Free Tier)", self._generate_with_gemini),
             ("GitHub Models API (Free for Actions/PAT)", self._generate_with_github_models),
             ("OpenRouter Free API", self._generate_with_openrouter),
@@ -122,6 +123,7 @@ class ArticleGenerator:
 4. HTML形式のまま、余計な前置き・解説なしで本文のみを出力してください。
 """
         generators = [
+            ("Groq API", self._generate_with_groq),
             ("Gemini API (Proofread)", self._generate_with_gemini),
             ("GitHub Models API (Proofread)", self._generate_with_github_models),
             ("OpenRouter Free API (Proofread)", self._generate_with_openrouter),
@@ -183,6 +185,33 @@ class ArticleGenerator:
                 return data["candidates"][0]["content"]["parts"][0]["text"]
             except KeyError:
                 return None
+        return None
+
+    
+    def _generate_with_groq(self, prompt: str) -> Optional[str]:
+        api_key = os.environ.get("GROQ_API_KEY")
+        if not api_key:
+            return None
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama3-8b-8192"]
+        for model in models:
+            payload = {
+                "model": model,
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.7
+            }
+            try:
+                res = requests.post(url, headers=headers, json=payload, timeout=30)
+                if res.status_code == 200:
+                    text = res.json()["choices"][0]["message"]["content"]
+                    if text and len(text.strip()) > 30:
+                        return text.strip()
+            except Exception as e:
+                print(f"Groq ({model}) error: {e}")
         return None
 
     def _generate_with_github_models(self, prompt: str) -> Optional[str]:
