@@ -50,7 +50,7 @@ class ArticleGenerator:
             ("GitHub Models API (Free for Actions/PAT)", self._generate_with_github_models),
             ("OpenRouter Free API", self._generate_with_openrouter),
             ("Hugging Face API (Free Tier)", self._generate_with_huggingface),
-            ("Pollinations AI Free (No Key Required)", self._generate_with_pollinations),
+
         ]
 
         raw_article = None
@@ -266,27 +266,4 @@ class ArticleGenerator:
                 return text
             except (KeyError, IndexError):
                 return None
-        return None
-
-    def _generate_with_pollinations(self, prompt: str) -> Optional[str]:
-        url = "https://text.pollinations.ai/"
-        models = ["openai", "qwen", "mistral"]
-        
-        for attempt, model in enumerate(models):
-            payload = {
-                "messages": [
-                    {"role": "system", "content": "あなたはホビー速報ブログのプロ編集者です。指示されたルールを厳格に守り、日本語で前置き・後書きなしでHTML本文のみを出力してください。"},
-                    {"role": "user", "content": prompt}
-                ],
-                "model": model
-            }
-            try:
-                resp = requests.post(url, json=payload, timeout=25)
-                if resp.status_code == 200 and len(resp.text.strip()) > 100:
-                    return resp.text
-                elif resp.status_code == 429:
-                    time.sleep(attempt+2)
-            except Exception:
-                pass
-            
         return None
