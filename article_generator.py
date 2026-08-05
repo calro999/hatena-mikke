@@ -1,10 +1,17 @@
-import os
-import re
-import requests
-import json
-import time
-import urllib.parse
-from typing import Dict, Any, Optional, List
+def sanitize_llm_output(content, valid_affiliate_url=""):
+    if not content:
+        return ""
+    import re
+    url_pattern = r'https?://[^\s"<>\'\)]+'
+    def replace_url(match):
+        found_url = match.group(0)
+        if "room.rakuten.co.jp" in found_url or "hb.afl.rakuten.co.jp" in found_url or ("rakuten.co.jp" in found_url and "affiliateId" in found_url) or "hatena.ne.jp" in found_url:
+            return found_url
+        return valid_affiliate_url if valid_affiliate_url else "https://room.rakuten.co.jp/jack555/items"
+    
+    sanitized = re.sub(url_pattern, replace_url, content)
+    sanitized = sanitized.replace("Amazon", "楽天市場").replace("アマゾン", "楽天市場").replace("ヤフー", "楽天市場").replace("Yahoo!", "楽天市場")
+    return sanitized
 
 class ArticleGenerator:
     def __init__(self, model_id: str = ""):
@@ -15,14 +22,13 @@ class ArticleGenerator:
         pass
 
     def translate_synopsis(self, text: str) -> str:
-        # 呼び出しは不要となりましたが、互換性のためにメソッドは残しておきます
         return text
 
     def generate_review_article(self, item: Dict[str, Any]) -> str:
         title = item.get("title", "")
         clean_title = item.get("clean_title", title)
         price = item.get("price", "")
-        url = item.get("url", "")
+        url = item.get("affiliateUrl") or item.get("url", "")
         caption = item.get("caption", "")
 
         prompt = f"""あなたは「新作ホビー・ガチャ・食玩の最速予約・在庫復活」を伝えるプロの速報編集者です。
@@ -32,6 +38,7 @@ class ArticleGenerator:
 【商品名】: {title}
 【価格】: {price}
 【商品の説明】: {caption}
+【アフィリエイトURL】: {url}
 
 【出力の構成ルール（厳格遵守）】:
 ① 記事のタイトル（【速報】【在庫復活】などの煽り文句＋商品名）を <h2> タグで囲んで出力してください。
@@ -40,9 +47,10 @@ class ArticleGenerator:
 ④ 最後に「人気キャラのため一瞬で売り切れる可能性があります！急いでチェックしてください！」という強い購入への誘導文を書いてください。
 
 【執筆の厳格なルール】:
-1. 出力はブログの【本文HTMLのみ】にしてください。余計な挨拶や解説（「はい、以下が記事です」など）は絶対に1文字も含めないでください。
+1. 出力はブログの【本文HTMLのみ】にしてください。余計な挨拶や解説は絶対に1文字も含めないでください。
 2. スマホで読みやすいように、重要な部分やアピールポイントは適宜 <b> タグで囲んで太字に強調してください。
 3. すべてHTMLタグを使用して整形した状態で出力してください（Markdown記法ではなく直接HTMLタグを使用すること）。
+4. 【厳禁事項】: Amazon, Yahoo, 他社ECサイト, メーカー公式サイト等のURLや名称は絶対に含めないでください。商品リンクは提供したアフィリエイトURLのみを使用してください。
 """
 
         generators = [
@@ -103,7 +111,7 @@ class ArticleGenerator:
             return tag
             
         html_output = re.sub(r'<a\s+[^>]*>', add_target_blank, raw_article)
-        return html_output
+        return sanitize_llm_output(html_output, url)
 
     def proofread_and_optimize(self, content: str, title: str) -> str:
         """誤字脱字の最終チェックと、SEO, AI-SEO (AI検索対応), GEO (Generative Engine Optimization) 的なブラッシュアップを行う工程。"""
