@@ -1,3 +1,5 @@
+from typing import Dict, Any
+
 def sanitize_llm_output(content, valid_affiliate_url=""):
     if not content:
         return ""
