@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 def sanitize_llm_output(content, valid_affiliate_url=""):
     if not content:
@@ -175,26 +175,33 @@ class ArticleGenerator:
         if not api_key:
             return None
         
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-        headers = {"Content-Type": "application/json"}
-        payload = {
-            "contents": [{
-                "parts": [{
-                    "text": "あなたはホビー速報ブログのプロ編集者です。指示された厳格なルールを遵守し、余計な挨拶や解説を一切含まないHTML本文のみを出力します。\n\n" + prompt
-                }]
-            }],
-            "generationConfig": {
-                "temperature": 0.7,
-                "maxOutputTokens": 4000
-            }
-        }
-        resp = requests.post(url, headers=headers, json=payload, timeout=30)
-        if resp.status_code == 200:
-            data = resp.json()
+        for model_name in ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash"]:
             try:
-                return data["candidates"][0]["content"]["parts"][0]["text"]
-            except KeyError:
-                return None
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+                headers = {"Content-Type": "application/json"}
+                payload = {
+                    "contents": [{
+                        "parts": [{
+                            "text": "あなたはホビー速報ブログのプロ編集者です。指示された厳格なルールを遵守し、余計な挨拶や解説を一切含まないHTML本文のみを出力します。\n\n" + prompt
+                        }]
+                    }],
+                    "generationConfig": {
+                        "temperature": 0.7,
+                        "maxOutputTokens": 4000
+                    }
+                }
+                if "2.5" in model_name:
+                    payload["generationConfig"]["thinkingConfig"] = {"thinkingBudget": 0}
+                resp = requests.post(url, headers=headers, json=payload, timeout=30)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    candidate = data.get("candidates", [{}])[0]
+                    parts = candidate.get("content", {}).get("parts", [])
+                    text = "".join(p.get("text", "") for p in parts if p.get("text")).strip()
+                    if len(text) > 100:
+                        return text
+            except Exception as e:
+                print(f"Gemini API error ({model_name}): {e}")
         return None
 
     
