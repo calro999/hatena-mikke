@@ -389,3 +389,4 @@ gosunwood:10008074
 realize-store:10338540
 saitamatoy:10023003
 wasshoi-mura:10024391
+saitamatoy:10023005
