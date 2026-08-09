@@ -1,3 +1,6 @@
+import os
+import re
+import requests
 from typing import Dict, Any, Optional
 
 def sanitize_llm_output(content, valid_affiliate_url=""):
