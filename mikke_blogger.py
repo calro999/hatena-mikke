@@ -74,7 +74,7 @@ def fetch_rakuten_items(app_id: str, access_key: str, affiliate_id: str, keyword
         "keyword": keyword,
         "genreId": "101164", # ホビー・おもちゃジャンル
         "sort": "standard",
-        "hits": 10,
+        "hits": 30,
         "format": "json"
     }
 
@@ -145,7 +145,7 @@ def generate_room_comment_with_llm(item):
 【商品説明・特徴】: {caption[:200]}
 
 以下の要件を厳格に遵守してください：
-1. 口調・トーン：「これ気になってた！」「これかわいい！」「これ便利だよ！」といった親しみやすく共感できる会話調にすること。
+1. 口調・トーン：ターゲット層に刺さる自然なレビュー口調とし、「これかわいい！」「これ気になってた！」「これ便利だよ！」といった決まりきった定型文・挨拶パターンは絶対に使用しないでください。商品独自の具体的おすすめポイントや魅力を解説してください。
 2. 文字数：400文字以内（厳守。超えると投稿エラーになります）。
 3. 絵文字：5〜8個使用して華やかにすること。
 4. ハッシュタグ：3〜5個（商品のカテゴリや関連するもの）含め、末尾に「#楽天市場」を必ず含めること。
@@ -154,9 +154,8 @@ def generate_room_comment_with_llm(item):
 """
 
     system_message = (
-        "あなたは楽天ROOMでフォロワー急増中の人気インフルエンサーです。"
-        "「これ気になってた！」「これかわいい！」「これ便利だよ！」などの親しみやすい口調で、"
-        "商品の魅力を共感たっぷりに伝えてください。"
+        "あなたは楽天ROOMでフォロワーから高い信頼を得ている商品レビュー専門のインフルエンサーです。"
+        "定型文やテンプレート的な表現は一切使わず、商品の具体的な良さや使うシーンが目に浮かぶような魅力的で自然なオリジナル紹介文を作成してください。"
     )
 
     def clean_text(text):
@@ -270,19 +269,19 @@ def generate_room_comment_with_llm(item):
     keyword = words[0] if words else "おすすめ"
 
     starters = [
-        f"これ気になってた！「{clean_title}」すごく良さそうで目をつけてました✨",
-        f"これかわいい！「{clean_title}」のデザインに一目惚れしちゃった💕",
-        f"これ便利だよ！「{clean_title}」は持っておくと日常で大活躍しそう👍",
-        f"これ気になってた！話題の「{clean_title}」を見つけて即チェック🎁",
-        f"これ便利だよ！生活のクオリティが上がりそうな「{clean_title}」✨"
+        f"注目の『{clean_title}』をピックアップ！デザイン・クオリティともに満足感の高い一品✨",
+        f"ファン必見！『{clean_title}』の細部までこだわった作りが本当に素敵🛍️",
+        f"見つけた瞬間テンション上がった『{clean_title}』！自分用にもプレゼントにも◎👍",
+        f"話題の注目アイテム『{clean_title}』をご紹介！毎日の生活に彩りを添えてくれますね🎁",
+        f"クオリティが高くておすすめの『{clean_title}』！気になる方はお早めにチェック✨"
     ]
     starter = random.choice(starters)
 
     bodies = [
-        "実用性抜群で見た目のセンスも最高のアイテム！自分用はもちろんギフトにもぴったりだね😊",
-        "使ってみた人の評価も高くて期待大！毎日の生活がもっと楽しくなりそう✨",
-        "細部までこだわりを感じる優秀アイテム。気になる人はぜひチェックしてみてね🛍️",
-        "このクオリティでこの価格は本当に魅力的！見つけたら早めのチェックがおすすめ👍"
+        "細部まで丁寧につくられており、手にとったときの満足感が違います！コレクションにもおすすめ😊",
+        "実用性はもちろん見た目の完成度も抜群。お部屋に飾るだけで気分が上がります✨",
+        "評価が高くプレゼントしても喜ばれること間違いなしの優秀グッズ！🛍️",
+        "限定感もあり見逃せない注目アイテム。お気に入りに追加してチェックしてみてください👍"
     ]
     body = random.choice(bodies)
 
@@ -403,42 +402,30 @@ def main():
     if dry_run:
         print("Warning: HATENA_API_KEY is not set. Running in DRY-RUN/DEMO mode.")
 
-    # 2. Generate Search Keyword
-    keyword = generate_keyword()
-    print(f"Generated Keyword: {keyword}")
-
-    # 3. Load Cache
-    posted_cache = load_cache()
-    print(f"Loaded {len(posted_cache)} posted items from cache.")
-
-    # 4. Fetch Items (With Retry on Empty Result)
-    max_retries = 3
-    items = []
-    for attempt in range(max_retries):
-        items = fetch_rakuten_items(rakuten_app_id, rakuten_access_key, rakuten_affiliate_id, keyword)
-        if items:
-            break
-        print(f"Warning: No items fetched for keyword '{keyword}'. Retrying with a new keyword...")
-        keyword = generate_keyword()
-        print(f"New Generated Keyword: {keyword}")
-
-    if not items:
-        print("Error: No items fetched from Rakuten Ichiba API after multiple retries.")
-        sys.exit(1)
-
-    print(f"Fetched {len(items)} items. Checking for new items...")
-
-    # 5. Filter Unposted Items
+    # 4. Fetch Unposted Items (Looping up to 20 keywords until an unposted item is found)
+    max_keyword_attempts = 20
     target_item = None
-    for item in items:
-        item_code = item.get("itemCode")
-        if item_code and item_code not in posted_cache:
-            target_item = item
+    
+    for attempt in range(max_keyword_attempts):
+        keyword = generate_keyword()
+        print(f"Attempt {attempt + 1}/{max_keyword_attempts} - Searching with Keyword: {keyword}")
+        items = fetch_rakuten_items(rakuten_app_id, rakuten_access_key, rakuten_affiliate_id, keyword)
+        if not items:
+            print(f"No items fetched for keyword '{keyword}'. Trying next keyword...")
+            continue
+
+        for item in items:
+            item_code = item.get("itemCode")
+            if item_code and item_code not in posted_cache:
+                target_item = item
+                break
+        
+        if target_item:
             break
 
     if not target_item:
-        print("All fetched items have already been posted. Nothing to do today.")
-        sys.exit(0)
+        print("Error: Could not find any unposted items after searching multiple keywords.")
+        sys.exit(1)
 
     print(f"Selected Item to Post: {target_item['title']} (Code: {target_item['itemCode']})")
 
