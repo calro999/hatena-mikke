@@ -390,3 +390,4 @@ realize-store:10338540
 saitamatoy:10023003
 wasshoi-mura:10024391
 saitamatoy:10023005
+value-club:10010629
