@@ -402,6 +402,9 @@ def main():
     if dry_run:
         print("Warning: HATENA_API_KEY is not set. Running in DRY-RUN/DEMO mode.")
 
+    # 3. Load Cache
+    posted_cache = load_cache()
+
     # 4. Fetch Unposted Items (Looping up to 20 keywords until an unposted item is found)
     max_keyword_attempts = 20
     target_item = None
