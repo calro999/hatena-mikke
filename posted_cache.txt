@@ -393,3 +393,4 @@ saitamatoy:10023005
 value-club:10010629
 saitamatoy:10023065
 realize-store-2:10155305
+auc-yuyou:10195813
