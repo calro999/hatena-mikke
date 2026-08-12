@@ -431,3 +431,4 @@ auc-modelbase-z:10009199
 auc-yuyou:10201027
 realize-store:10551854
 auc-treasuremarket:10054430
+kishi-gum:10032634
