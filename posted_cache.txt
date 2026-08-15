@@ -487,3 +487,4 @@ saitamatoy:10023016
 book:21954173
 festival-plus:10072368
 festival-plaza:10041040
+value-club:10011146
