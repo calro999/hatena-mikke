@@ -500,3 +500,4 @@ saitamatoy:10023019
 realize-store:10296487
 auc-modelbase-z:10011336
 festival-plaza:10067217
+value-club:10012045
