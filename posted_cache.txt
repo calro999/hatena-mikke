@@ -519,3 +519,4 @@ sanyodo-shop:10046167
 wasshoi-mura:10025034
 realize-store:10296506
 mirakikaku:10028388
+realize-store-2:10253851
