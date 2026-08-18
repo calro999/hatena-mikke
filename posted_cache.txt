@@ -558,3 +558,4 @@ realize-store:10296492
 auc-modelbase-z:10011947
 realize-store:10238690
 wasshoi-mura:10023793
+manianomori:10000500
