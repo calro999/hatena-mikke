@@ -571,3 +571,4 @@ auc-treasuremarket:10054748
 auc-treasuremarket:10054010
 tsukasa-shop:10050580
 noris-collection:10006253
+biteki-life:10699947
