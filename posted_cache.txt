@@ -573,3 +573,4 @@ tsukasa-shop:10050580
 noris-collection:10006253
 biteki-life:10699947
 saitamatoy:10022767
+shizuya:10001239
