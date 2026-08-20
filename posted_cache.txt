@@ -577,3 +577,4 @@ shizuya:10001239
 goldstar:10054583
 wasshoi-mura:10024990
 auc-modelbase-z:10010615
+realize-store-2:10463021
