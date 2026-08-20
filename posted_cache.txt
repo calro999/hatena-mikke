@@ -580,3 +580,4 @@ auc-modelbase-z:10010615
 realize-store-2:10463021
 festival-plaza:10058999
 rapport-store:10001752
+auc-yuyou:10197503
