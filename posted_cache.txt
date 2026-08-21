@@ -607,3 +607,4 @@ sanyodo-shop:10031738
 jigsawclub:10165219
 realize-store:10296494
 wasshoi-mura:10025096
+manianomori:10000493
