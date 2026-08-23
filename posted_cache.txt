@@ -650,3 +650,4 @@ auc-modelbase-z:10011121
 festival-plaza:10064472
 realize-store:10093690
 auc-modelbase-z:10012205
+kishi-gum:10032550
