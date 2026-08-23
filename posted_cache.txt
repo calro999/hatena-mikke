@@ -644,3 +644,4 @@ shizuya:10006041
 collection-landscape:10002280
 realize-store:10093689
 aromacoffee:10053587
+shizuya:10000934
