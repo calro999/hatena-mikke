@@ -654,3 +654,4 @@ kishi-gum:10032550
 book:21602921
 auc-treasuremarket:10054204
 realize-store:10093688
+auc-yuyou:10213323
