@@ -670,3 +670,4 @@ auc-modelbase-z:10010992
 surugaya-a-too:356310468
 auc-treasuremarket:10054298
 shizuya:10001741
+realize-store:10600620
