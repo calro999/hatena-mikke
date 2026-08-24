@@ -673,3 +673,4 @@ shizuya:10001741
 realize-store:10600620
 kaidokinets:10003060
 suns-online-store:10004242
+realize-store-2:10155301
