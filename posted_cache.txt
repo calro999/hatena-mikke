@@ -703,3 +703,4 @@ aoi-depart:10346092
 festival-plaza:10067956
 market-place-osaka:10000207
 smltrading:10000323
+realize-store-2:10462988
