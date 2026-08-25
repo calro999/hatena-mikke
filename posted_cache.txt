@@ -706,3 +706,4 @@ smltrading:10000323
 realize-store-2:10462988
 realize-store:10534385
 realize-store-2:10462991
+goldstar:10054585
