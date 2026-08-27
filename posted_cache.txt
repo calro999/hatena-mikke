@@ -728,3 +728,4 @@ wasshoi-mura:10025097
 realize-store:10238692
 basicbag:10000593
 auc-modelbase-z:10010971
+auc-yuyou:10216978
