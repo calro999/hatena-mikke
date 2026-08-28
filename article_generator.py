@@ -178,7 +178,21 @@ class ArticleGenerator:
         if not api_key:
             return None
         
-        for model_name in ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash"]:
+        models = [
+            "gemini-2.5-flash",
+            "gemini-2.0-flash",
+            "gemini-2.5-flash-lite",
+            "gemini-2.0-flash-lite",
+            "gemini-3.7-flash",
+            "gemini-3.6-flash",
+            "gemini-3.5-flash",
+            "gemini-3.5-flash-lite",
+            "gemini-3.1-flash-lite",
+            "gemini-3-flash",
+            "gemini-2.5-pro",
+            "gemini-3.1-pro"
+        ]
+        for model_name in models:
             try:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
                 headers = {"Content-Type": "application/json"}
@@ -193,7 +207,7 @@ class ArticleGenerator:
                         "maxOutputTokens": 4000
                     }
                 }
-                if "2.5" in model_name:
+                if any(v in model_name for v in ["2.5", "3.", "3-"]):
                     payload["generationConfig"]["thinkingConfig"] = {"thinkingBudget": 0}
                 resp = requests.post(url, headers=headers, json=payload, timeout=30)
                 if resp.status_code == 200:
