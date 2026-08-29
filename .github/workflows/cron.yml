@@ -2,8 +2,8 @@ name: Rakuten Ichiba Hatena Blog Poster
 
 on:
   schedule:
-    # 1時間に1回 (毎時0分) 実行
-    - cron: '0 * * * *'
+    # 30分おき (毎時27分、57分) に実行 (GitHub Actions混雑回避のためオフセット設定)
+    - cron: '27,57 * * * *'
   workflow_dispatch:
 
 jobs:
