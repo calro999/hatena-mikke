@@ -754,3 +754,4 @@ realize-store:10626757
 aromacoffee:10056008
 gacha-samurai:10013872
 auc-modelbase-z:10000632
+auc-yuyou:10216979
