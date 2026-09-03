@@ -765,3 +765,4 @@ auc-fukumishouji:10027795
 auc-yuyou:10032736
 auc-isauto:10006761
 kishi-gum:10032688
+lechien:10019881
