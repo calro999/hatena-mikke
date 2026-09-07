@@ -791,3 +791,4 @@ book:21602902
 auc-modelbase-z:10012368
 festival-plaza:10063434
 auc-modelbase-z:10012262
+smament-shop:10000037
