@@ -806,3 +806,4 @@ realize-store:10750499
 festival-plaza:10067552
 aikawa:10002807
 hobbyzakka-cha3:10005231
+auc-yuyou:10216665
