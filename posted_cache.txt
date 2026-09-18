@@ -861,3 +861,4 @@ manianomori:10000478
 sanyodo-shop:10046826
 surugaya-a-too:360874335
 festival-plaza:10064979
+auc-fukumishouji:10026430
