@@ -888,3 +888,4 @@ smltrading:10000703
 auc-modelbase-z:10011354
 gosunwood:10008499
 book:22045873
+auc-modelbase-z:10010250
