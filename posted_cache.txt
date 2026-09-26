@@ -906,3 +906,4 @@ kishi-gum:10032728
 exicoast02:10006747
 realize-store:10745086
 book:22011785
+gacha-samurai:10013195
