@@ -914,3 +914,4 @@ auc-modelbase-z:10011614
 auc-treasuremarket:10055208
 auc-modelbase-z:10010582
 wasshoi-mura:10025106
+amiami:12307791
