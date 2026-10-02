@@ -935,3 +935,4 @@ auc-yuyou:10150793
 auc-toysanta:10375379
 kishi-gum:10032586
 auc-fukumishouji:10028523
+realize-store-2:10420225
