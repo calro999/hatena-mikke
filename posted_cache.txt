@@ -942,3 +942,4 @@ suns-online-store:10004718
 realize-store:10750463
 diomart:10096007
 auc-treasuremarket:10055218
+yotsuba:10035822
