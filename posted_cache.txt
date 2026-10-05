@@ -951,3 +951,4 @@ gosunwood:10006264
 aromacoffee:10055960
 wasshoi-mura:10023481
 aoi-depart:10451270
+kishi-gum:10032579
