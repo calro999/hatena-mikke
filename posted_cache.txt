@@ -970,3 +970,4 @@ festival-plus:10073290
 festival-plaza:10067544
 jugem2020:10003624
 kukuna-online:10000394
+takaoka:10067423
