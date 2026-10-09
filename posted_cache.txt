@@ -968,3 +968,4 @@ yotsuba:10035826
 kishi-gum:10013244
 festival-plus:10073290
 festival-plaza:10067544
+jugem2020:10003624
