@@ -973,3 +973,4 @@ kukuna-online:10000394
 takaoka:10067423
 surugaya-a-too:359739070
 aromacoffee:10055958
+auc-treasuremarket:10055219
