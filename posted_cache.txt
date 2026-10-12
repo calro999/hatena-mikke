@@ -1007,3 +1007,4 @@ yotsuba:10035964
 auc-hanabiya-gekiyasu:10004489
 auc-treasuremarket:10055209
 realize-store:10668641
+wao-shop:10232677
