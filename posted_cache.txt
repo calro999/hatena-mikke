@@ -1016,3 +1016,4 @@ realize-store:10626725
 festival-plaza:10067548
 elimino:10277002
 surugaya-a-too:361122358
+senkanyamada:10028542
