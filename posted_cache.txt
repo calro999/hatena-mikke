@@ -1031,3 +1031,4 @@ gosunwood:10008501
 festival-plaza:10067554
 suns-online-store:10004759
 auc-sunny:10016716
+shizuya:10005895
