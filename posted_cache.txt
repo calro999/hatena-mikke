@@ -1055,3 +1055,4 @@ realize-store:10606189
 3taste:10000305
 senkanyamada:10031243
 senkanyamada:10035999
+festival-plaza:10061061
