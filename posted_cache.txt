@@ -1053,3 +1053,4 @@ auc-toysanta:10356358
 stylife:15806278
 realize-store:10606189
 3taste:10000305
+senkanyamada:10031243
