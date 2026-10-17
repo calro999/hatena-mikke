@@ -1078,3 +1078,4 @@ auc-sunny:10016710
 2ndls:10001223
 yotsuba:10035824
 one-derfulshop:10061736
+kishi-gum:10013238
