@@ -1104,3 +1104,4 @@ sanyodo-shop:10045108
 dagasi:10010336
 saitamatoy:10023076
 festival-plus:10073311
+kishi-gum:10032524
