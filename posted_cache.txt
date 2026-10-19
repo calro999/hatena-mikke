@@ -1095,3 +1095,4 @@ suns-online-store:10004894
 auc-sunny:10016708
 surugaya-a-too:359914797
 auc-modelbase-z:10012135
+meiaistore:10001353
