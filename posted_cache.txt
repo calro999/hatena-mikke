@@ -1102,3 +1102,4 @@ realize-store:10342706
 surugaya-a-too:361514242
 sanyodo-shop:10045108
 dagasi:10010336
+saitamatoy:10023076
