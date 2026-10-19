@@ -1100,3 +1100,4 @@ anicharaya:10272577
 auc-modelbase-z:10012435
 realize-store:10342706
 surugaya-a-too:361514242
+sanyodo-shop:10045108
