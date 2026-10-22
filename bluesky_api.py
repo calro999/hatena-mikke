@@ -11,7 +11,6 @@ class BlueskyAPI:
     
     def __init__(self, handle: Optional[str] = None, app_password: Optional[str] = None, pds_url: str = "https://bsky.social"):
         self.handle = (handle or os.environ.get("BLUESKY_HANDLE") or os.environ.get("BSKY_HANDLE") or "mikke-hobby.bsky.social").strip()
-        # もし @ から始まっていたら除去
         if self.handle.startswith("@"):
             self.handle = self.handle[1:]
             
@@ -23,7 +22,7 @@ class BlueskyAPI:
     def authenticate(self) -> bool:
         """Bluesky AT Protocol セッションを作成してJWTトークンを取得"""
         if not self.app_password:
-            print("Bluesky: BLUESKY_APP_PASSWORD (または BSKY_APP_PASSWORD) が設定されていません。投稿をスキップします。")
+            print("Bluesky: BLUESKY_APP_PASSWORD が設定されていません。投稿をスキップします。")
             return False
 
         url = f"{self.pds_url}/xrpc/com.atproto.server.createSession"
@@ -47,13 +46,25 @@ class BlueskyAPI:
             print(f"Bluesky: 認証例外発生: {e}")
             return False
 
+    def shorten_url(self, url: str) -> str:
+        """長いアフィリエイトURL等をTinyURLで安全に短縮（Blueskyの300 grapheme制限対策）"""
+        if not url or len(url) < 35:
+            return url
+        try:
+            resp = requests.get(f"https://tinyurl.com/api-create.php?url={url}", timeout=6)
+            if resp.status_code == 200 and resp.text.startswith("http"):
+                shortened = resp.text.strip()
+                print(f"Bluesky: URLを短縮しました ({len(url)}文字 -> {len(shortened)}文字)")
+                return shortened
+        except Exception as e:
+            print(f"Bluesky: URL短縮スキップ (元URLを使用): {e}")
+        return url
+
     def _extract_facets(self, text: str) -> List[Dict[str, Any]]:
         """
         投稿テキストからURLを検出してUTF-8バイトオフセット基準のfacets（リンク情報）を生成。
-        Blueskyではリンクをクリック可能にするためにfacetの指定が必要。
         """
         facets = []
-        text_bytes = text.encode("utf-8")
         url_pattern = re.compile(r'https?://[^\s]+')
         
         for match in url_pattern.finditer(text):
@@ -77,24 +88,52 @@ class BlueskyAPI:
 
     def generate_post_text(self, item: Dict[str, Any], blog_url: str, genre: str = "gadget") -> str:
         """
-        Gemini/Groq/GitHub Models 等の利用可能LLMを使って、毎回変化する高CTAなBluesky投稿文を生成。
-        万一のフォールバック用テンプレートも複数用意。
+        Gemini等の利用可能LLMを使って、毎回変化する高CTAなBluesky投稿文を生成。
+        300文字制限を厳守するため、URLを短縮し全体を安全な長さに収める。
         """
         clean_title = item.get("clean_title") or item.get("title") or "話題のアイテム"
         price = item.get("price", "")
-        product_url = item.get("url") or item.get("affiliateUrl") or ""
+        raw_product_url = item.get("url") or item.get("affiliateUrl") or ""
 
-        # LLMによる動的生成を試みる
-        generated_text = self._generate_with_llm(clean_title, price, blog_url, product_url, genre)
+        # 長いURLは短縮して文字数を圧縮
+        short_blog_url = self.shorten_url(blog_url)
+        short_product_url = self.shorten_url(raw_product_url)
+
+        # LLMによる動的生成
+        generated_text = self._generate_with_llm(clean_title, price, short_blog_url, short_product_url, genre)
         if generated_text:
-            return generated_text
+            cleaned = self._ensure_length_and_links(generated_text, short_blog_url, short_product_url)
+            if cleaned:
+                return cleaned
 
-        # フォールバック：バラエティ豊かな高CTA文面テンプレート
-        return self._generate_fallback_text(clean_title, price, blog_url, product_url, genre)
+        # フォールバック
+        fallback_text = self._generate_fallback_text(clean_title, price, short_blog_url, short_product_url, genre)
+        return self._ensure_length_and_links(fallback_text, short_blog_url, short_product_url)
+
+    def _ensure_length_and_links(self, text: str, blog_url: str, product_url: str) -> str:
+        """Blueskyの300 grapheme (文字数) 制限を絶対に超えないよう整形・調整"""
+        # リンクが含まれているか確認
+        if blog_url and blog_url not in text:
+            text += f"\n📝詳細: {blog_url}"
+        if product_url and product_url not in text:
+            text += f"\n🛒楽天: {product_url}"
+
+        # 280文字以内に収めるための安全トリミング
+        if len(text) > 280:
+            lines = text.split("\n")
+            # リンク行以外を削る
+            kept_lines = []
+            for line in lines:
+                if blog_url in line or product_url in line:
+                    kept_lines.append(line)
+                elif len("\n".join(kept_lines + [line])) < 190:
+                    kept_lines.append(line)
+            text = "\n".join(kept_lines)
+
+        return text.strip()
 
     def _generate_with_llm(self, clean_title: str, price: str, blog_url: str, product_url: str, genre: str) -> Optional[str]:
-        """最新Geminiモデル（2.5/3.x）やGroq等を活用して高CTA投稿文を動的生成"""
-        # 1. Gemini API (ユーザー規則に準拠した最新モデル群)
+        """最新Geminiモデル（2.5/3.x）等を活用して高CTA投稿文を動的生成"""
         gemini_api_key = os.environ.get("GEMINI_API_KEY")
         if gemini_api_key:
             gemini_models = [
@@ -109,36 +148,36 @@ class BlueskyAPI:
             ]
             
             angle_hints = [
-                "「想像以上に良かった」「迷ってるなら買い」という熱い愛用者の興奮・発見を伝える切り口",
-                "「気になってた人必見」「この使い心地はヤバい」という本音検証・リアル体験を強調する切り口",
-                "「セールやポイント還元中」「売り切れ前にチェック」というタイムリーなお得感を煽る切り口",
-                "「デスク周りや生活が劇的に激変した」「神アイテム認定」というライフハック的ベネフィットの切り口",
-                "「かわいすぎて即確保」「手に入るうちに急いで」というファン目線の熱狂的な切り口"
+                "「想像以上に良かった」「迷ってるなら買い」という熱い興奮を伝える切り口",
+                "「気になってた人必見」「この使い心地は沼」という本音レビューを伝える切り口",
+                "「在庫あるうちに急いで！」「完売前に要チェック」という緊急感を煽る切り口",
+                "「生活やデスク周りが劇的に変わった」というベネフィットの切り口",
+                "「可愛すぎて即確保」「手に入るうちに急いで」というファン目線の切り口"
             ]
             chosen_angle = random.choice(angle_hints)
 
-            prompt = f"""あなたはSNSで絶大な支持を集めるインフルエンサー兼レビュアーです。
-Bluesky（ブルースカイ）向けに、読者が思わずブログ記事と商品リンクをタップしたくなる【超高CTA・魅力的な投稿文】を1つ作成してください。
+            prompt = f"""あなたはSNSで大人気のインフルエンサー兼レビュアーです。
+Bluesky向けに、読者が思わずブログ記事と商品リンクをタップしたくなる【超高CTAな投稿文】を1つ作成してください。
 
 【対象商品】: {clean_title}
 【価格】: {price}
-【ジャンル】: {genre}（ガジェット/ホビー/便利グッズなど）
+【ジャンル】: {genre}
 【今回の切り口】: {chosen_angle}
 【ブログ記事URL】: {blog_url}
 【商品ページURL】: {product_url}
 
 ====================
-【投稿作成ルール】
+【厳格な文字数ルール】
 ====================
-1. 文字数制限: 全体で260文字以内（URLを含む）。長すぎずスマホで一瞬で読める構成に。
-2. 構成:
-   - 1〜2行の強烈なフック（思わず手が止まる導入）
-   - このアイテムの凄さ・おすすめポイント（1〜2行、箇条書きや絵文字活用）
-   - 「本音レビュー・詳細はこちら👇」＋ブログURL
-   - 「楽天市場で在庫・セールを見る🛒」＋商品URL
-   - 関連ハッシュタグ 2〜3個
-3. 毎回同じテンプレートにならず、切り口や言葉遣いを生き生きと変えてください。AI臭い定型文（「今回はご紹介します」「いかがでしたでしょうか」等）は一切使わないこと。
-4. 出力はBlueskyの投稿テキストのみ。余計な解説・前置き・クォーテーションは絶対に出力しないでください。
+※Blueskyは300文字上限のため、【URLを含めて全体で200文字以内】で簡潔かつ強烈に作成してください！
+構成案：
+1行目：思わず手が止まるインパクトある一言
+2行目：おすすめポイント・熱量
+3行目：本音レビュー記事👉 {blog_url}
+4行目：楽天公式・在庫を見る🛒 {product_url}
+5行目：#ハッシュタグ（1〜2個）
+
+余計な解説・前置き・引用符は一切出力せず、投稿テキストのみを日本語で出力してください。
 """
 
             headers = {"Content-Type": "application/json"}
@@ -149,7 +188,7 @@ Bluesky（ブルースカイ）向けに、読者が思わずブログ記事と�
                         "contents": [{"parts": [{"text": prompt}]}],
                         "generationConfig": {
                             "temperature": 0.85,
-                            "maxOutputTokens": 300
+                            "maxOutputTokens": 200
                         }
                     }
                     if any(v in model_name for v in ["2.5", "3.", "3-"]):
@@ -159,20 +198,14 @@ Bluesky（ブルースカイ）向けに、読者が思わずブログ記事と�
                         data = resp.json()
                         parts = data.get("candidates", [{}])[0].get("content", {}).get("parts", [])
                         text = "".join(p.get("text", "") for p in parts if p.get("text")).strip()
-                        # クォーテーションなどのトリミング
                         text = text.strip('"\'`')
-                        if text and len(text) > 30 and (blog_url in text or product_url in text):
-                            # URLが欠けていたら補完
-                            if blog_url and blog_url not in text:
-                                text += f"\n📝詳細レビュー: {blog_url}"
-                            if product_url and product_url not in text:
-                                text += f"\n🛒楽天でチェック: {product_url}"
+                        if text and len(text) > 30:
                             print(f"Bluesky: Gemini API ({model_name}) により魅力的な投稿文を生成しました")
                             return text
-                except Exception as e:
+                except Exception:
                     continue
 
-        # 2. Groq API フォールバック
+        # Groq API フォールバック
         groq_api_key = os.environ.get("GROQ_API_KEY")
         if groq_api_key:
             try:
@@ -184,8 +217,8 @@ Bluesky（ブルースカイ）向けに、読者が思わずブログ記事と�
                 payload = {
                     "model": "llama-3.3-70b-versatile",
                     "messages": [
-                        {"role": "system", "content": "あなたはBlueskyで反響を呼ぶプロのレビュアーです。日本語で高CTAな投稿本文のみを前置きなしで出力してください。"},
-                        {"role": "user", "content": f"商品「{clean_title}」({price})の紹介ポストを作ってください。\nブログURL: {blog_url}\n商品URL: {product_url}\n両方のURLを必ず含め、熱量ある語り口で260文字以内で作成してください。"}
+                        {"role": "system", "content": "あなたはBlueskyで反響を呼ぶプロのレビュアーです。URLを含めて全体で200文字以内の高CTAな投稿本文のみを前置きなしで出力してください。"},
+                        {"role": "user", "content": f"商品「{clean_title}」({price})の紹介ポストを作ってください。\nブログURL: {blog_url}\n商品URL: {product_url}\n両方のURLを必ず含めてください。"}
                     ],
                     "temperature": 0.8
                 }
@@ -193,10 +226,6 @@ Bluesky（ブルースカイ）向けに、読者が思わずブログ記事と�
                 if resp.status_code == 200:
                     text = resp.json()["choices"][0]["message"]["content"].strip().strip('"\'`')
                     if text and len(text) > 30:
-                        if blog_url and blog_url not in text:
-                            text += f"\n📝詳細レビュー: {blog_url}"
-                        if product_url and product_url not in text:
-                            text += f"\n🛒楽天でチェック: {product_url}"
                         print("Bluesky: Groq API により投稿文を生成しました")
                         return text
             except Exception:
@@ -205,37 +234,29 @@ Bluesky（ブルースカイ）向けに、読者が思わずブログ記事と�
         return None
 
     def _generate_fallback_text(self, clean_title: str, price: str, blog_url: str, product_url: str, genre: str) -> str:
-        """LLM呼び出し失敗時のランダム高CTAテンプレート群"""
+        """LLM呼び出し失敗時のランダム高CTAテンプレート群（250文字以内）"""
         price_str = f"（{price}）" if price else ""
         
         patterns = [
-            # パターン1: 結論ファースト・興奮型
             (
-                f"【本音レビュー更新】\n"
-                f"気になってた「{clean_title}」{price_str}、実際に使ってみたら想像以上のクオリティでした…！✨\n\n"
-                f"リアルな使い勝手＆注意点を徹底検証しました👇\n"
-                f"📝ブログで詳しく見る:\n{blog_url}\n\n"
-                f"🛒楽天市場の在庫・最安値はこちら:\n{product_url}\n\n"
-                f"#おすすめ #楽天市場 #買ってよかった"
+                f"気になってた「{clean_title}」{price_str}、実際に使ったら想像以上によかった…！✨\n\n"
+                f"📝本音レビュー検証:\n{blog_url}\n\n"
+                f"🛒楽天の在庫・最安値:\n{product_url}\n\n"
+                f"#おすすめ #楽天市場"
             ),
-            # パターン2: 疑問解決・お悩み解消型
             (
                 f"「{clean_title}」って実際のところ買い？\n"
-                f"迷ってる人向けに、メリットも惜しい点もぜんぶ本音でまとめました💡\n\n"
-                f"失敗したくない人は購入前にぜひチェックを！👇\n"
-                f"📝本音レビュー記事:\n{blog_url}\n\n"
-                f"🛒セール情報・口コミを見る:\n{product_url}\n\n"
-                f"#注目アイテム #ポイ活 #楽天お買い物マラソン"
+                f"メリットも気になる点もぜんぶ本音でまとめました💡\n\n"
+                f"📝詳細レビューはこちら👇\n{blog_url}\n\n"
+                f"🛒セール・口コミを見る👇\n{product_url}\n\n"
+                f"#買ってよかった #楽天お買い物マラソン"
             ),
-            # パターン3: タイムリー・在庫注意型
             (
-                f"SNSやランキングで今話題の「{clean_title}」✨\n"
-                f"この使い心地は一度使うと手放せないやつです…！{price_str}\n\n"
-                f"リアルな使用感レビューを公開しました👇\n"
-                f"📝検証ブログを見る:\n{blog_url}\n\n"
-                f"売り切れ前にチェック👇\n"
-                f"🛒楽天公式ページ:\n{product_url}\n\n"
-                f"#人気商品 #トレンド #新生活"
+                f"話題の「{clean_title}」✨\n"
+                f"手に入るうちに急いで！🏃💨\n\n"
+                f"📝検証記事はこちら:\n{blog_url}\n\n"
+                f"🛒楽天市場公式ページ:\n{product_url}\n\n"
+                f"#人気アイテム #注目"
             )
         ]
         return random.choice(patterns)
