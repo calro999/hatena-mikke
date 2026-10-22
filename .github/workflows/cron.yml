@@ -53,6 +53,8 @@ jobs:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        BLUESKY_HANDLE: ${{ secrets.BLUESKY_HANDLE || 'mikke-hobby.bsky.social' }}
+        BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
       run: |
         python mikke_blogger.py
 

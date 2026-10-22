@@ -14,6 +14,7 @@ import time
 import requests
 from hatena_api import HatenaAPI
 from article_generator import ArticleGenerator
+from bluesky_api import BlueskyAPI
 
 CACHE_FILE = "posted_cache.txt"
 
@@ -511,13 +512,13 @@ def main():
         article_content = f"{ga_html}\n{img_html}\n{llm_section}\n{cta_html}"
 
     # 9. Post to Hatena Blog
-    success = hatena_client.post_entry(
+    published_entry_url = hatena_client.post_entry(
         title=blog_title,
         html_content=article_content,
         is_draft=False
     )
 
-    if success:
+    if published_entry_url:
         print("Successfully posted to Hatena Blog!")
         if not dry_run:
             save_cache(target_item["itemCode"])
@@ -531,6 +532,25 @@ def main():
             post_to_rakuten_room(target_item["itemCode"], room_comment)
         except Exception as room_e:
             print(f"Error during Rakuten Room post: {room_e}")
+
+        # Post to Bluesky
+        try:
+            print("Preparing to post to Bluesky (@mikke-hobby.bsky.social)...")
+            bsky = BlueskyAPI()
+            bsky_text = bsky.generate_post_text(
+                item={
+                    "title": target_item["title"],
+                    "clean_title": clean_title,
+                    "price": target_item.get("price", ""),
+                    "url": target_item.get("affiliateUrl", "")
+                },
+                blog_url=published_entry_url,
+                genre="hobby"
+            )
+            print(f"Generated Bluesky Post Text:\n---\n{bsky_text}\n---")
+            bsky.post(bsky_text)
+        except Exception as bsky_e:
+            print(f"Warning: Failed to post to Bluesky: {bsky_e}")
     else:
         print("Failed to post entry.")
         sys.exit(1)
