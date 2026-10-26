@@ -1187,3 +1187,4 @@ suns-online-store:10004931
 realize-store:10111894
 auc-sunny:10016688
 realize-store-2:10497246
+gacha-samurai:10014657
