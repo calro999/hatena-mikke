@@ -1194,3 +1194,4 @@ surugaya-a-too:361966433
 smament-shop:10000063
 festival-plaza:10068436
 realize-store-2:10497164
+festival-plaza:10067674
