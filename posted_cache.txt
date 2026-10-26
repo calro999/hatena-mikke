@@ -1189,3 +1189,4 @@ auc-sunny:10016688
 realize-store-2:10497246
 gacha-samurai:10014657
 festival-plaza:10051236
+shizuya:10000569
