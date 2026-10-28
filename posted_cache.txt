@@ -1214,3 +1214,4 @@ kishi-gum:10032516
 auc-modelbase-z:10010914
 gosunwood:10008472
 shizuya:10000567
+auc-fukumishouji:10028830
