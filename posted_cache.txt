@@ -1222,3 +1222,4 @@ auc-yuyou:10219582
 shizuya:10000501
 realize-store:10668510
 zakkamarche:10013406
+meiaistore:10001366
