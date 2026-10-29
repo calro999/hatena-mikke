@@ -1219,3 +1219,4 @@ aoi-depart:10451499
 toytoifactory:10014303
 aoi-depart:10451498
 auc-yuyou:10219582
+shizuya:10000501
