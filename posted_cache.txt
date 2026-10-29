@@ -1224,3 +1224,4 @@ realize-store:10668510
 zakkamarche:10013406
 meiaistore:10001366
 shizuya:10000503
+ssstore:10000316
