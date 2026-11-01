@@ -1258,3 +1258,4 @@ smltrading:10001335
 smltrading:10001334
 festival-plaza:10067972
 surugaya-a-too:362889664
+realize-store-2:10436061
