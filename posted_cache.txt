@@ -1268,3 +1268,4 @@ festival-plus:10064708
 wasshoi-mura:10024775
 festival-plus:10073208
 festival-plaza:10067026
+likaman:10049179
