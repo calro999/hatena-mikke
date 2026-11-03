@@ -1276,3 +1276,4 @@ gosunwood:10007471
 gosunwood:10008525
 festival-plaza:10068057
 gosunwood:10007452
+yotsuba:10036212
