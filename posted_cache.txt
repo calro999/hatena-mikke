@@ -1278,3 +1278,4 @@ festival-plaza:10068057
 gosunwood:10007452
 yotsuba:10036212
 mirakikaku:10028685
+aoi-depart:10371712
