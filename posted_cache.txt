@@ -1292,3 +1292,4 @@ shizuya:10003917
 surugaya-a-too:364337795
 auc-yuyou:10220354
 miraclim:10003351
+kanfudo:10000426
