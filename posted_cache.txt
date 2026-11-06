@@ -1305,3 +1305,4 @@ auc-modelbase-z:10012669
 realize-store-2:10488507
 realize-store-2:10579638
 surugaya-a-too:362973764
+kishi-gum:10032706
