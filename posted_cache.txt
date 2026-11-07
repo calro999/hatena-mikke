@@ -1314,3 +1314,4 @@ miraclim:10003357
 festival-plaza:10054595
 exicoast02:10008433
 festival-plus:10073105
+realize-store:10600619
