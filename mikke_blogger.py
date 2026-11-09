@@ -536,7 +536,9 @@ def main():
         "caption": target_item["itemCaption"]
     }
     
-    llm_section = article_gen.generate_review_article(generator_input_item)
+    gen_title, desc_html, body_html = article_gen.generate_review_article(generator_input_item)
+    blog_title = gen_title
+    print(f"Generated Blog Title: {blog_title}")
 
     # 7. Setup Hatena Client
     hatena_client = HatenaAPI(
@@ -554,7 +556,7 @@ def main():
 
     # 大迫力の商品画像（クリックで楽天市場へ直接遷移）
     img_html = f'''
-<div style="text-align: center; margin: 25px 0 15px 0;">
+<div style="text-align: center; margin: 25px 0 20px 0;">
     <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; text-decoration: none;">
         <img src="{product_image_url}" alt="{clean_title}" style="width: 100%; max-width: 600px; height: auto; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: block; margin: 0 auto;">
     </a>
@@ -596,28 +598,8 @@ def main():
 </script>
 """
 
-    # 本文組み立て
-    article_content = f"{ga_html}\n{img_html}\n{early_cta_html}\n{llm_section}\n{closing_cta_html}"
-    
-    # 記事タイトル：スマートで長すぎず、クリック率（CTR）抜群のタイトル
-    title_hooks = [
-        f"【完売注意】『{clean_title}』が待望の入荷！ファン必見の魅力まとめ",
-        f"【即チェック】大人気『{clean_title}』の在庫＆詳細を徹底紹介！",
-        f"【話題沸騰】『{clean_title}』が登場！即確保したい注目の見どころ",
-        f"【速報】『{clean_title}』が楽天市場で予約・販売開始！見逃せないポイント"
-    ]
-    blog_title = random.choice(title_hooks)
-
-    # もしLLMがh2タイトルを生成していた場合、それが長すぎなければ採用
-    match = re.search(r'<h2>(.*?)</h2>', llm_section)
-    if match:
-        extracted = match.group(1).strip()
-        cleaned_extracted = clean_mikke_product_title(extracted)
-        if 8 <= len(cleaned_extracted) <= 35:
-            blog_title = f"【話題】{cleaned_extracted} 見逃せない注目ポイントまとめ"
-        # 本文側のh2重複を削除
-        llm_section = llm_section.replace(match.group(0), "")
-        article_content = f"{ga_html}\n{img_html}\n{early_cta_html}\n{llm_section}\n{closing_cta_html}"
+    # 【最重要】記事冒頭（ディスクリプション部分）には純粋な魅力文（desc_html）のみを配置！
+    article_content = f"{ga_html}\n{desc_html}\n{img_html}\n{early_cta_html}\n{body_html}\n{closing_cta_html}"
 
     # 9. Post to Hatena Blog
     published_entry_url = hatena_client.post_entry(
