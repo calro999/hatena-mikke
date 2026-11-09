@@ -15,6 +15,8 @@ import requests
 from hatena_api import HatenaAPI
 from article_generator import ArticleGenerator
 from bluesky_api import BlueskyAPI
+from yahoo_api import YahooMikkeAPI
+from toggle_mode import get_next_platform, save_current_platform
 
 CACHE_FILE = "posted_cache.txt"
 
@@ -475,16 +477,23 @@ def post_to_rakuten_room(item_code, comment):
 
 
 def main():
-    print("=== Starting Rakuten Hobby Hatena Blog Poster ===")
+    print("=== Starting Hobby Hatena Blog Poster (Rakuten & Yahoo Hybrid) ===")
     
     # 1. Configurations
     rakuten_app_id = os.environ.get("RAKUTEN_APP_ID", "DUMMY_APP_ID")
     rakuten_access_key = os.environ.get("RAKUTEN_ACCESS_KEY", "")
     rakuten_affiliate_id = os.environ.get("RAKUTEN_AFFILIATE_ID", "DUMMY_AFFILIATE_ID")
+
+    yahoo_client_id = os.environ.get("YAHOO_CLIENT_ID", "")
+    yahoo_affiliate_id = os.environ.get("YAHOO_AFFILIATE_ID", "")
     
     hatena_id = os.environ.get("HATENA_ID", "DUMMY_HATENA_ID")
     blog_id = os.environ.get("HATENA_BLOG_ID", "mikke-hobby.hatenablog.com")
     hatena_api_key = os.environ.get("HATENA_API_KEY", "")
+
+    forced_platform = os.environ.get("POST_PLATFORM", "").strip().lower()
+    platform = get_next_platform(forced_platform)
+    print(f"Selected Platform for this run: {platform.upper()}")
 
     dry_run = not hatena_api_key or hatena_api_key.startswith("DUMMY")
     if dry_run:
@@ -493,26 +502,45 @@ def main():
     # 3. Load Cache
     posted_cache = load_cache()
 
-    # 4. Fetch Unposted Items (Looping up to 20 keywords until an unposted item is found)
+    # 4. Fetch Unposted Items
     max_keyword_attempts = 20
     target_item = None
-    
-    for attempt in range(max_keyword_attempts):
-        keyword = generate_keyword()
-        print(f"Attempt {attempt + 1}/{max_keyword_attempts} - Searching with Keyword: {keyword}")
-        items = fetch_rakuten_items(rakuten_app_id, rakuten_access_key, rakuten_affiliate_id, keyword)
-        if not items:
-            print(f"No items fetched for keyword '{keyword}'. Trying next keyword...")
-            continue
 
-        for item in items:
-            item_code = item.get("itemCode")
-            if item_code and item_code not in posted_cache:
-                target_item = item
+    if platform == "yahoo" and yahoo_client_id:
+        print("--- Fetching items from Yahoo! Shopping API ---")
+        yahoo_client = YahooMikkeAPI(client_id=yahoo_client_id, affiliate_id=yahoo_affiliate_id)
+        for attempt in range(max_keyword_attempts):
+            keyword = yahoo_client.generate_random_keyword()
+            print(f"Attempt {attempt + 1}/{max_keyword_attempts} - (Yahoo: {keyword})")
+            items = yahoo_client.search_items(query=keyword, hits=30)
+            if not items:
+                continue
+            random.shuffle(items)
+            for item in items:
+                item_code = item.get("itemCode")
+                if item_code and item_code not in posted_cache:
+                    target_item = item
+                    break
+            if target_item:
                 break
-        
-        if target_item:
-            break
+    else:
+        if platform == "yahoo" and not yahoo_client_id:
+            print("YAHOO_CLIENT_ID not found. Falling back to Rakuten.")
+            platform = "rakuten"
+        print("--- Fetching items from Rakuten API ---")
+        for attempt in range(max_keyword_attempts):
+            keyword = generate_keyword()
+            print(f"Attempt {attempt + 1}/{max_keyword_attempts} - (Rakuten: {keyword})")
+            items = fetch_rakuten_items(rakuten_app_id, rakuten_access_key, rakuten_affiliate_id, keyword)
+            if not items:
+                continue
+            for item in items:
+                item_code = item.get("itemCode")
+                if item_code and item_code not in posted_cache:
+                    target_item = item
+                    break
+            if target_item:
+                break
 
     if not target_item:
         print("Error: Could not find any unposted items after searching multiple keywords.")
@@ -554,13 +582,26 @@ def main():
 
     affiliate_link = target_item.get("affiliateUrl", "")
 
-    # 大迫力の商品画像（クリックで楽天市場へ直接遷移）
+    if platform == "yahoo":
+        platform_name = "Yahoo!ショッピング"
+        badge_title = "Yahoo!ショッピング 公式・優良取扱店"
+        btn_gradient = "linear-gradient(135deg, #ff0033 0%, #ff334b 100%)"
+        btn_shadow = "rgba(255,0,51,0.3)"
+        notice_txt = "※人気商品のため早期に在庫切れとなる場合がございます。PayPayポイント還元や最新の在庫状況は上記リンクよりご確認ください。"
+    else:
+        platform_name = "楽天市場"
+        badge_title = "楽天市場 公式ショップ・優良取扱店"
+        btn_gradient = "linear-gradient(135deg, #FF6B00 0%, #FF8533 100%)"
+        btn_shadow = "rgba(255,107,0,0.35)"
+        notice_txt = "※人気商品のため早期に在庫切れや完売となる場合がございます。最新の在庫状況は上記リンクよりご確認ください。"
+
+    # 大迫力の商品画像（クリックで商品ページへ直接遷移）
     img_html = f'''
 <div style="text-align: center; margin: 25px 0 20px 0;">
     <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; text-decoration: none;">
         <img src="{product_image_url}" alt="{clean_title}" style="width: 100%; max-width: 600px; height: auto; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: block; margin: 0 auto;">
     </a>
-    <p style="font-size: 11px; color: #888; margin-top: 8px;">（※画像クリックで楽天市場の商品ページへ直接移動できます）</p>
+    <p style="font-size: 11px; color: #888; margin-top: 8px;">（※画像クリックで{platform_name}の商品ページへ直接移動できます）</p>
 </div>
 '''
     
@@ -568,8 +609,8 @@ def main():
     early_cta_html = f"""
 <div style="margin: 20px 0 30px 0; padding: 16px 20px; background: #fff8f0; border: 2px solid #ffcca3; border-radius: 14px; text-align: center;">
     <p style="font-size: 14px; color: #d9480f; font-weight: bold; margin: 0 0 10px 0;">＼ 在庫限り・売り切れ前に即確保！ ／</p>
-    <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: linear-gradient(135deg, #FF6B00 0%, #FF8533 100%); color: #fff; padding: 14px 32px; font-size: 16px; font-weight: bold; text-decoration: none; border-radius: 30px; box-shadow: 0 4px 14px rgba(255,107,0,0.35);">
-        楽天市場で「{clean_title}」の在庫・価格を見る 🛒
+    <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: {btn_gradient}; color: #fff; padding: 14px 32px; font-size: 16px; font-weight: bold; text-decoration: none; border-radius: 30px; box-shadow: 0 4px 14px {btn_shadow};">
+        {platform_name}で「{clean_title}」の在庫・価格を見る 🛒
     </a>
 </div>
 """
@@ -577,13 +618,13 @@ def main():
     # 記事末尾の大型クロージング商品カード
     closing_cta_html = f"""
 <div style="margin: 40px 0 25px 0; padding: 24px 20px; background: #fffbf7; border: 2px solid #ffe3cc; border-radius: 18px; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,0.05);">
-    <span style="display: inline-block; background: #FF6B00; color: #fff; font-size: 12px; font-weight: bold; padding: 4px 14px; border-radius: 20px; margin-bottom: 12px;">楽天市場 公式ショップ・優良取扱店</span>
+    <span style="display: inline-block; background: #333333; color: #fff; font-size: 12px; font-weight: bold; padding: 4px 14px; border-radius: 20px; margin-bottom: 12px;">{badge_title}</span>
     <div style="font-size: 18px; font-weight: bold; color: #222; margin-bottom: 8px; line-height: 1.4;">{clean_title}</div>
     <div style="font-size: 20px; font-weight: bold; color: #d9480f; margin-bottom: 18px;">{target_item.get('price', '')}</div>
-    <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: linear-gradient(135deg, #FF5E00 0%, #FF7A1A 100%); color: #ffffff; padding: 16px 36px; font-size: 17px; font-weight: bold; text-decoration: none; border-radius: 35px; box-shadow: 0 6px 16px rgba(255,94,0,0.35); text-align: center;">
-        ＼ 楽天市場で詳細＆ユーザー口コミをチェック ／
+    <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: {btn_gradient}; color: #ffffff; padding: 16px 36px; font-size: 17px; font-weight: bold; text-decoration: none; border-radius: 35px; box-shadow: 0 6px 16px {btn_shadow}; text-align: center;">
+        ＼ {platform_name}で詳細＆ユーザー口コミをチェック ／
     </a>
-    <p style="font-size: 11px; color: #888; margin-top: 12px; margin-bottom: 0;">※人気商品のため早期に在庫切れや完売となる場合がございます。最新の在庫状況は上記リンクよりご確認ください。</p>
+    <p style="font-size: 11px; color: #888; margin-top: 12px; margin-bottom: 0;">{notice_txt}</p>
 </div>
 """
 
@@ -614,14 +655,19 @@ def main():
             save_cache(target_item["itemCode"])
             print(f"Added {target_item['itemCode']} to posted cache.")
         
-        # Post to Rakuten Room
-        try:
-            print("Generating Rakuten Room comment...")
-            room_comment = generate_room_comment_with_llm(target_item)
-            print(f"Generated ROOM Comment:\n{room_comment}")
-            post_to_rakuten_room(target_item["itemCode"], room_comment)
-        except Exception as room_e:
-            print(f"Error during Rakuten Room post: {room_e}")
+        # Save platform state for next rotation
+        save_current_platform(platform)
+        print(f"Rotated platform state: last was {platform}")
+
+        # Post to Rakuten Room (Only for Rakuten items)
+        if platform == "rakuten":
+            try:
+                print("Generating Rakuten Room comment...")
+                room_comment = generate_room_comment_with_llm(target_item)
+                print(f"Generated ROOM Comment:\n{room_comment}")
+                post_to_rakuten_room(target_item["itemCode"], room_comment)
+            except Exception as room_e:
+                print(f"Error during Rakuten Room post: {room_e}")
 
         # Post to Bluesky
         try:
