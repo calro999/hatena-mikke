@@ -1336,3 +1336,4 @@ connectgate:10052737
 manianomori:10000402
 festival-plaza:10068074
 manianomori:10000873
+amiami:12599874
