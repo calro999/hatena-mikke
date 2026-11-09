@@ -18,27 +18,100 @@ from bluesky_api import BlueskyAPI
 
 CACHE_FILE = "posted_cache.txt"
 
-# 商材データ定義
+# 商材データ定義（実際に売れている人気キャラクター・ジャンル）
 CHARACTERS = [
     "ちいかわ",
-    "サンリオ",
-    "パペットスンスン",
     "スヌーピー",
+    "サンリオ",
     "ポケモン",
-    "スーパーマリオ",
-    "スクイーズ"
+    "スクイーズ",
+    "パペットスンスン",
+    "スーパーマリオ"
 ]
 
-# ホビーの種類定義
+# ホビーの種類定義（売れ筋のガチャガチャ、シークレットBOX、スクイーズ等）
 HOBBIES = [
-    "スクイーズ",
-    "マスコット",
     "ガチャガチャ",
+    "シークレットBOX",
+    "スクイーズ",
     "カプセルトイ",
-    "ウエハース",
-    "デコステッカー",
-    "食玩"
+    "マスコット ぬいぐるみ",
+    "ブラインドボックス",
+    "コンプリートセット",
+    "食玩 ウエハース"
 ]
+
+def clean_mikke_product_title(title: str) -> str:
+    """楽天特有の大量SEOワード・記号・配送情報を除去し、短くスマートで惹きつける商品名に整形"""
+    if not title:
+        return "注目ホビー"
+
+    cleaned = title
+
+    # 1. 括弧の中身を除去（ただし括弧内に主要キャラ名がある場合は保護）
+    brackets = [
+        r'\{[^}]*\}', r'【[^】]*】', r'\[[^\]]*\]', r'［[^］]*］',
+        r'（[^）]*）', r'\([^)]*\)', r'〈[^〉]*〉', r'《[^》]*》',
+        r'〔[^〕]*〕'
+    ]
+    char_match = re.search(r'【([^】]*(?:ちいかわ|スヌーピー|サンリオ|ポケモン|マリオ|スクイーズ)[^】]*)】', cleaned)
+    salvaged_char = ""
+    if char_match:
+        salvaged_char = re.sub(r'★|☆|限定|韓国|日本|公式', '', char_match.group(1)).strip()
+
+    for b in brackets:
+        cleaned = re.sub(b, ' ', cleaned)
+
+    # 2. 装飾記号・PR記号の削除
+    cleaned = re.sub(r'[★☆◆◇■□▲▼◎○〇♪!！?？※・]+', ' ', cleaned)
+
+    # 3. 楽天プロモーションワード・発送情報・景品タグ等
+    promo_words = [
+        r'送料無料.*', r'あす楽', r'即納', r'ランキング\s*\d*位', r'第?\d+冠',
+        r'クーポン(で|\s*利用で)?\d+%?OFF?', r'ポイント\s*\d+倍', r'P\d+倍',
+        r'スーパーSALE', r'お買い物マラソン', r'セール', r'限定', r'正規品',
+        r'公式', r'メーカー保証', r'ギフト', r'プレゼント', r'お祝い',
+        r'202[4-7]年?(最新|新型)?', r'最新(版|型)?', r'新型', r'景品玩具', r'景品',
+        r'おもちゃ', r'雑貨', r'ぷにぷに', r'ぷるぷる', r'もちもち', r'もちとろ',
+        r'柔らかい', r'ストレス解消', r'子供', r'イベント', r'お祭り', r'夏祭り',
+        r'詰め合わせ', r'かわいい', r'配送区分[A-Z0-9]', r'メール便', r'定形外',
+        r'ボンボンドロップシール', r'ボンドロ'
+    ]
+    for pw in promo_words:
+        cleaned = re.sub(pw, ' ', cleaned, flags=re.IGNORECASE)
+
+    # 4. 区切り文字で前半部を採用
+    delimiters = [r'\s*\|\s*', r'\s*｜\s*', r'\s*／\s*', r'\s*/\s*', r'\s*－\s*', r'\s*:\s*', r'\s*：\s*']
+    for delim in delimiters:
+        parts = re.split(delim, cleaned)
+        if parts and len(parts[0].strip()) >= 4:
+            cleaned = parts[0]
+            break
+
+    # 5. 空白の正規化と末尾数値の除去
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    cleaned = re.sub(r'\s+\d+$', '', cleaned)
+
+    if salvaged_char and salvaged_char not in cleaned:
+        cleaned = f"{salvaged_char} {cleaned}".strip()
+
+    # 6. 単語単位でスマートに短縮（最大24文字程度）
+    words = cleaned.split()
+    if words:
+        result = []
+        cur_len = 0
+        for w in words:
+            if cur_len + len(w) + (1 if result else 0) <= 24:
+                result.append(w)
+                cur_len += len(w) + (1 if len(result) > 1 else 0)
+            elif not result:
+                result.append(w[:22])
+                break
+            else:
+                break
+        cleaned = ' '.join(result)
+
+    return cleaned if len(cleaned) >= 3 else title[:20].strip()
 
 def load_cache() -> set:
     if not os.path.exists(CACHE_FILE):
@@ -453,7 +526,7 @@ def main():
     article_gen.load_model()
     
     title_raw = target_item["title"]
-    clean_title = re.sub(r'【[^】]+】|\[[^\]]+\]', '', title_raw).strip()
+    clean_title = clean_mikke_product_title(title_raw)
     
     generator_input_item = {
         "title": target_item["title"],
@@ -477,14 +550,38 @@ def main():
     if not product_image_url:
         product_image_url = "https://images.unsplash.com/photo-1558882224-cca166733360?w=800&auto=format&fit=crop&q=80" # フォールバック
 
-    # Construct HTML article
-    img_html = f'<div style="text-align: center; margin: 20px 0;"><img src="{product_image_url}" alt="{target_item["title"]}" style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.08);"></div>'
-    
-    cta_html = f"""
-<div style="text-align: center; margin: 40px 0 20px 0;">
-    <a href="{target_item['affiliateUrl']}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #FF5E00; color: #fff; padding: 16px 32px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 30px; box-shadow: 0 4px 15px rgba(255,94,0,0.3); text-align: center;">
-        ＼ 楽天市場で詳細をチェックする ／
+    affiliate_link = target_item.get("affiliateUrl", "")
+
+    # 大迫力の商品画像（クリックで楽天市場へ直接遷移）
+    img_html = f'''
+<div style="text-align: center; margin: 25px 0 15px 0;">
+    <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; text-decoration: none;">
+        <img src="{product_image_url}" alt="{clean_title}" style="width: 100%; max-width: 600px; height: auto; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: block; margin: 0 auto;">
     </a>
+    <p style="font-size: 11px; color: #888; margin-top: 8px;">（※画像クリックで楽天市場の商品ページへ直接移動できます）</p>
+</div>
+'''
+    
+    # 冒頭ファーストビュー直下の即クリックCTAボタン
+    early_cta_html = f"""
+<div style="margin: 20px 0 30px 0; padding: 16px 20px; background: #fff8f0; border: 2px solid #ffcca3; border-radius: 14px; text-align: center;">
+    <p style="font-size: 14px; color: #d9480f; font-weight: bold; margin: 0 0 10px 0;">＼ 在庫限り・売り切れ前に即確保！ ／</p>
+    <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: linear-gradient(135deg, #FF6B00 0%, #FF8533 100%); color: #fff; padding: 14px 32px; font-size: 16px; font-weight: bold; text-decoration: none; border-radius: 30px; box-shadow: 0 4px 14px rgba(255,107,0,0.35);">
+        楽天市場で「{clean_title}」の在庫・価格を見る 🛒
+    </a>
+</div>
+"""
+
+    # 記事末尾の大型クロージング商品カード
+    closing_cta_html = f"""
+<div style="margin: 40px 0 25px 0; padding: 24px 20px; background: #fffbf7; border: 2px solid #ffe3cc; border-radius: 18px; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,0.05);">
+    <span style="display: inline-block; background: #FF6B00; color: #fff; font-size: 12px; font-weight: bold; padding: 4px 14px; border-radius: 20px; margin-bottom: 12px;">楽天市場 公式ショップ・優良取扱店</span>
+    <div style="font-size: 18px; font-weight: bold; color: #222; margin-bottom: 8px; line-height: 1.4;">{clean_title}</div>
+    <div style="font-size: 20px; font-weight: bold; color: #d9480f; margin-bottom: 18px;">{target_item.get('price', '')}</div>
+    <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: linear-gradient(135deg, #FF5E00 0%, #FF7A1A 100%); color: #ffffff; padding: 16px 36px; font-size: 17px; font-weight: bold; text-decoration: none; border-radius: 35px; box-shadow: 0 6px 16px rgba(255,94,0,0.35); text-align: center;">
+        ＼ 楽天市場で詳細＆ユーザー口コミをチェック ／
+    </a>
+    <p style="font-size: 11px; color: #888; margin-top: 12px; margin-bottom: 0;">※人気商品のため早期に在庫切れや完売となる場合がございます。最新の在庫状況は上記リンクよりご確認ください。</p>
 </div>
 """
 
@@ -499,17 +596,28 @@ def main():
 </script>
 """
 
-    # LLMセクション、商品画像、アフィリエイトリンクの3要素のみにスリム化
-    article_content = f"{ga_html}\n{img_html}\n{llm_section}\n{cta_html}"
+    # 本文組み立て
+    article_content = f"{ga_html}\n{img_html}\n{early_cta_html}\n{llm_section}\n{closing_cta_html}"
     
-    # 記事タイトルはLLMで生成されたものから抽出（<h2>タグの中身）を試みる
-    blog_title = f"【注目ホビー】『{clean_title}』が登場！魅力・みどころまとめ"
+    # 記事タイトル：スマートで長すぎず、クリック率（CTR）抜群のタイトル
+    title_hooks = [
+        f"【完売注意】『{clean_title}』が待望の入荷！ファン必見の魅力まとめ",
+        f"【即チェック】大人気『{clean_title}』の在庫＆詳細を徹底紹介！",
+        f"【話題沸騰】『{clean_title}』が登場！即確保したい注目の見どころ",
+        f"【速報】『{clean_title}』が楽天市場で予約・販売開始！見逃せないポイント"
+    ]
+    blog_title = random.choice(title_hooks)
+
+    # もしLLMがh2タイトルを生成していた場合、それが長すぎなければ採用
     match = re.search(r'<h2>(.*?)</h2>', llm_section)
     if match:
-        blog_title = match.group(1).strip()
-        # 本文側のh2タグの重複を避けるためトリミング
+        extracted = match.group(1).strip()
+        cleaned_extracted = clean_mikke_product_title(extracted)
+        if 8 <= len(cleaned_extracted) <= 35:
+            blog_title = f"【話題】{cleaned_extracted} 見逃せない注目ポイントまとめ"
+        # 本文側のh2重複を削除
         llm_section = llm_section.replace(match.group(0), "")
-        article_content = f"{ga_html}\n{img_html}\n{llm_section}\n{cta_html}"
+        article_content = f"{ga_html}\n{img_html}\n{early_cta_html}\n{llm_section}\n{closing_cta_html}"
 
     # 9. Post to Hatena Blog
     published_entry_url = hatena_client.post_entry(
