@@ -108,8 +108,13 @@ class ArticleGenerator:
                 gen_content = subparts[1].strip()
                 gen_content = re.sub(r'^(CONTENT:|本文[:：])\s*', '', gen_content).strip()
 
-                if len(gen_title) > 34:
-                    gen_title = gen_title[:33].rstrip()
+                if len(gen_title) > 42:
+                    for sep in ['！', '!', '？', '?', ' ', '　', '。']:
+                        if sep in gen_title[:38]:
+                            idx = gen_title[:38].rfind(sep)
+                            if idx > 15:
+                                gen_title = gen_title[:idx+1].strip()
+                                break
                 if not gen_title:
                     gen_title = f"{clean_title}の魅力と見逃せない注目ポイント"
 
