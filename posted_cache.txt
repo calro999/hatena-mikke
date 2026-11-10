@@ -1341,3 +1341,4 @@ yahoo_suns-online-store_qy-ge09-se8n
 gacha-samurai:10015277
 skindesign:10002674
 shizuya:10005382
+connectgate:10052374
