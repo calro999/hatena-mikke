@@ -1358,3 +1358,4 @@ ssstore:10000334
 kishi-gum:10032788
 value-club:10012235
 festival-plus:10073184
+shizuya:10003999
