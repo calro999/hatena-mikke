@@ -1362,3 +1362,4 @@ shizuya:10003999
 aoi-depart:10452715
 kishi-gum:10032542
 mirakikaku:10012670
+wasshoi-mura:10024778
