@@ -1384,3 +1384,5 @@ aromacoffee:10056709
 manianomori:10001172
 anitto-friends:10181041
 surugaya-a-too:363122064
+festival-plaza:10059312
+mirakikaku:10025222
