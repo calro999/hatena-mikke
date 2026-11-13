@@ -1393,3 +1393,5 @@ book:22082518
 menubook-tatsujin:10085917
 smltrading:10000319
 skindesign:10002722
+clickworks:10087513
+shizuya:10005892
