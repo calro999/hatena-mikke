@@ -1382,3 +1382,5 @@ pop-mart-japan:10004111
 edion:10915309
 aromacoffee:10056709
 manianomori:10001172
+anitto-friends:10181041
+surugaya-a-too:363122064
