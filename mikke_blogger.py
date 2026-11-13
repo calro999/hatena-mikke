@@ -1,3 +1,5 @@
+from typing import Optional, Set, Dict, Any
+import time
 import base64
 import tempfile
 from playwright.sync_api import sync_playwright
@@ -476,39 +478,32 @@ def post_to_rakuten_room(item_code, comment):
             os.remove(session_file_path)
 
 
-def main():
-    print("=== Starting Hobby Hatena Blog Poster (Rakuten & Yahoo Hybrid) ===")
-    
-    # 1. Configurations
-    rakuten_app_id = os.environ.get("RAKUTEN_APP_ID", "DUMMY_APP_ID")
-    rakuten_access_key = os.environ.get("RAKUTEN_ACCESS_KEY", "")
-    rakuten_affiliate_id = os.environ.get("RAKUTEN_AFFILIATE_ID", "DUMMY_AFFILIATE_ID")
+def post_single_article(
+    post_index: int,
+    total_posts: int,
+    posted_cache: set,
+    hatena_client: HatenaAPI,
+    article_gen: ArticleGenerator,
+    rakuten_app_id: str,
+    rakuten_access_key: str,
+    rakuten_affiliate_id: str,
+    yahoo_client: Optional[YahooMikkeAPI],
+    forced_platform: str,
+    dry_run: bool
+) -> bool:
+    print(f"\n==================================================")
+    print(f"=== Starting Mikke Post Batch [{post_index}/{total_posts}] ===")
+    print(f"==================================================")
 
-    yahoo_client_id = os.environ.get("YAHOO_CLIENT_ID", "")
-    yahoo_affiliate_id = os.environ.get("YAHOO_AFFILIATE_ID", "")
-    
-    hatena_id = os.environ.get("HATENA_ID", "DUMMY_HATENA_ID")
-    blog_id = os.environ.get("HATENA_BLOG_ID", "mikke-hobby.hatenablog.com")
-    hatena_api_key = os.environ.get("HATENA_API_KEY", "")
-
-    forced_platform = os.environ.get("POST_PLATFORM", "").strip().lower()
     platform = get_next_platform(forced_platform)
-    print(f"Selected Platform for this run: {platform.upper()}")
+    print(f"Selected Platform for Post #{post_index}: {platform.upper()}")
 
-    dry_run = not hatena_api_key or hatena_api_key.startswith("DUMMY")
-    if dry_run:
-        print("Warning: HATENA_API_KEY is not set. Running in DRY-RUN/DEMO mode.")
-
-    # 3. Load Cache
-    posted_cache = load_cache()
-
-    # 4. Fetch Unposted Items
+    # Fetch Unposted Items
     max_keyword_attempts = 20
     target_item = None
 
-    if platform == "yahoo" and yahoo_client_id:
+    if platform == "yahoo" and yahoo_client:
         print("--- Fetching items from Yahoo! Shopping API ---")
-        yahoo_client = YahooMikkeAPI(client_id=yahoo_client_id, affiliate_id=yahoo_affiliate_id)
         for attempt in range(max_keyword_attempts):
             keyword = yahoo_client.generate_random_keyword()
             print(f"Attempt {attempt + 1}/{max_keyword_attempts} - (Yahoo: {keyword})")
@@ -524,7 +519,7 @@ def main():
             if target_item:
                 break
     else:
-        if platform == "yahoo" and not yahoo_client_id:
+        if platform == "yahoo" and not yahoo_client:
             print("YAHOO_CLIENT_ID not found. Falling back to Rakuten.")
             platform = "rakuten"
         print("--- Fetching items from Rakuten API ---")
@@ -543,16 +538,12 @@ def main():
                 break
 
     if not target_item:
-        print("Error: Could not find any unposted items after searching multiple keywords.")
-        sys.exit(1)
+        print(f"Warning: Could not find any unposted items for Post #{post_index}.")
+        return False
 
     print(f"Selected Item to Post: {target_item['title']} (Code: {target_item['itemCode']})")
 
-    # 6. Generate Article Content
-    print("Generating Article Content using LLM...")
-    article_gen = ArticleGenerator()
-    article_gen.load_model()
-    
+    # Generate Article Content
     title_raw = target_item["title"]
     clean_title = clean_mikke_product_title(title_raw)
     
@@ -568,17 +559,10 @@ def main():
     blog_title = gen_title
     print(f"Generated Blog Title: {blog_title}")
 
-    # 7. Setup Hatena Client
-    hatena_client = HatenaAPI(
-        hatena_id=hatena_id,
-        blog_id=blog_id,
-        api_key=hatena_api_key
-    )
-
-    # 実際の商品の画像URLを直接使用
+    # Images & Styling
     product_image_url = target_item.get("imageUrl", "")
     if not product_image_url:
-        product_image_url = "https://images.unsplash.com/photo-1558882224-cca166733360?w=800&auto=format&fit=crop&q=80" # フォールバック
+        product_image_url = "https://images.unsplash.com/photo-1558882224-cca166733360?w=800&auto=format&fit=crop&q=80"
 
     affiliate_link = target_item.get("affiliateUrl", "")
 
@@ -595,7 +579,6 @@ def main():
         btn_shadow = "rgba(255,107,0,0.35)"
         notice_txt = "※人気商品のため早期に在庫切れや完売となる場合がございます。最新の在庫状況は上記リンクよりご確認ください。"
 
-    # 大迫力の商品画像（クリックで商品ページへ直接遷移）
     img_html = f'''
 <div style="text-align: center; margin: 25px 0 20px 0;">
     <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; text-decoration: none;">
@@ -605,7 +588,6 @@ def main():
 </div>
 '''
     
-    # 冒頭ファーストビュー直下の即クリックCTAボタン
     early_cta_html = f"""
 <div style="margin: 20px 0 30px 0; padding: 16px 20px; background: #fff8f0; border: 2px solid #ffcca3; border-radius: 14px; text-align: center;">
     <p style="font-size: 14px; color: #d9480f; font-weight: bold; margin: 0 0 10px 0;">＼ 在庫限り・売り切れ前に即確保！ ／</p>
@@ -615,7 +597,6 @@ def main():
 </div>
 """
 
-    # 記事末尾の大型クロージング商品カード
     closing_cta_html = f"""
 <div style="margin: 40px 0 25px 0; padding: 24px 20px; background: #fffbf7; border: 2px solid #ffe3cc; border-radius: 18px; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,0.05);">
     <span style="display: inline-block; background: #333333; color: #fff; font-size: 12px; font-weight: bold; padding: 4px 14px; border-radius: 20px; margin-bottom: 12px;">{badge_title}</span>
@@ -628,7 +609,6 @@ def main():
 </div>
 """
 
-    # Google Analytics Tag (Required)
     ga_html = """<!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-NFPP76LS9J"></script>
 <script>
@@ -639,10 +619,8 @@ def main():
 </script>
 """
 
-    # 【最重要】記事冒頭（ディスクリプション部分）には純粋な魅力文（desc_html）のみを配置！
     article_content = f"{ga_html}\n{desc_html}\n{img_html}\n{early_cta_html}\n{body_html}\n{closing_cta_html}"
 
-    # 9. Post to Hatena Blog
     published_entry_url = hatena_client.post_entry(
         title=blog_title,
         html_content=article_content,
@@ -650,12 +628,12 @@ def main():
     )
 
     if published_entry_url:
-        print("Successfully posted to Hatena Blog!")
+        print(f"Successfully posted Post #{post_index} to Hatena Blog!")
         if not dry_run:
             save_cache(target_item["itemCode"])
+            posted_cache.add(target_item["itemCode"])
             print(f"Added {target_item['itemCode']} to posted cache.")
         
-        # Save platform state for next rotation
         save_current_platform(platform)
         print(f"Rotated platform state: last was {platform}")
 
@@ -687,11 +665,75 @@ def main():
             bsky.post(bsky_text)
         except Exception as bsky_e:
             print(f"Warning: Failed to post to Bluesky: {bsky_e}")
-    else:
-        print("Failed to post entry.")
-        sys.exit(1)
 
-    print("=== Auto Post Process Completed! ===")
+        return True
+    else:
+        print(f"Failed to post entry for Post #{post_index}.")
+        return False
+
+def main():
+    print("=== Starting Hobby Hatena Blog Poster (Rakuten & Yahoo Hybrid) ===")
+    
+    # 1. Configurations
+    rakuten_app_id = os.environ.get("RAKUTEN_APP_ID", "DUMMY_APP_ID")
+    rakuten_access_key = os.environ.get("RAKUTEN_ACCESS_KEY", "")
+    rakuten_affiliate_id = os.environ.get("RAKUTEN_AFFILIATE_ID", "DUMMY_AFFILIATE_ID")
+
+    yahoo_client_id = os.environ.get("YAHOO_CLIENT_ID", "")
+    yahoo_affiliate_id = os.environ.get("YAHOO_AFFILIATE_ID", "")
+    
+    hatena_id = os.environ.get("HATENA_ID", "DUMMY_HATENA_ID")
+    blog_id = os.environ.get("HATENA_BLOG_ID", "mikke-hobby.hatenablog.com")
+    hatena_api_key = os.environ.get("HATENA_API_KEY", "")
+
+    forced_platform = os.environ.get("POST_PLATFORM", "").strip().lower()
+
+    dry_run = not hatena_api_key or hatena_api_key.startswith("DUMMY")
+    if dry_run:
+        print("Warning: HATENA_API_KEY is not set. Running in DRY-RUN/DEMO mode.")
+
+    posted_cache = load_cache()
+
+    yahoo_client = None
+    if yahoo_client_id:
+        yahoo_client = YahooMikkeAPI(client_id=yahoo_client_id, affiliate_id=yahoo_affiliate_id)
+
+    hatena_client = HatenaAPI(
+        hatena_id=hatena_id,
+        blog_id=blog_id,
+        api_key=hatena_api_key
+    )
+
+    article_gen = ArticleGenerator()
+    article_gen.load_model()
+
+    posts_per_run = int(os.environ.get("POSTS_PER_RUN", "2"))
+    successful_posts = 0
+
+    for idx in range(1, posts_per_run + 1):
+        success = post_single_article(
+            post_index=idx,
+            total_posts=posts_per_run,
+            posted_cache=posted_cache,
+            hatena_client=hatena_client,
+            article_gen=article_gen,
+            rakuten_app_id=rakuten_app_id,
+            rakuten_access_key=rakuten_access_key,
+            rakuten_affiliate_id=rakuten_affiliate_id,
+            yahoo_client=yahoo_client,
+            forced_platform=forced_platform,
+            dry_run=dry_run
+        )
+        if success:
+            successful_posts += 1
+
+        if idx < posts_per_run:
+            print(f"Waiting 15 seconds before next post...")
+            time.sleep(15)
+
+    print(f"\n=== Auto Post Process Completed: {successful_posts}/{posts_per_run} posts published successfully ===")
+    if successful_posts == 0:
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
