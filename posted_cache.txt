@@ -1390,3 +1390,5 @@ kanfudo:10000266
 asahi-abe:10131911
 festival-plus:10072699
 book:22082518
+menubook-tatsujin:10085917
+smltrading:10000319
