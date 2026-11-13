@@ -1388,3 +1388,5 @@ festival-plaza:10059312
 mirakikaku:10025222
 kanfudo:10000266
 asahi-abe:10131911
+festival-plus:10072699
+book:22082518
