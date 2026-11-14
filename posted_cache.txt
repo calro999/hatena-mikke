@@ -1395,3 +1395,5 @@ smltrading:10000319
 skindesign:10002722
 clickworks:10087513
 shizuya:10005892
+smltrading:10000795
+shizuya:10000997
