@@ -129,7 +129,10 @@ def save_cache(item_number: str):
         f.write(f"{item_number}\n")
 
 def generate_keyword() -> str:
-    """Aリスト and Bリストからランダムにキーワードを生成する。"""
+    """Aリスト and Bリストからランダムにキーワードを生成する。SEARCH_KEYWORDS環境変数があれば最優先。"""
+    env_kw = os.environ.get("SEARCH_KEYWORDS", "").strip()
+    if env_kw:
+        return env_kw
     char = random.choice(CHARACTERS)
     if char in ["スクイーズ", "サンリオ"]:
         # スクイーズ、サンリオ（単体指定用）
@@ -151,11 +154,13 @@ def fetch_rakuten_items(app_id: str, access_key: str, affiliate_id: str, keyword
         "applicationId": app_id,
         "affiliateId": affiliate_id,
         "keyword": keyword,
-        "genreId": "101164", # ホビー・おもちゃジャンル
         "sort": "standard",
         "hits": 30,
         "format": "json"
     }
+    # genreId はホビー検索時のみ設定
+    if not any(k in keyword for k in ["コスメ", "スキンケア", "美容液", "パック", "化粧水", "ヒーター", "ポーチ", "シェーバー"]):
+        params["genreId"] = "101164"
 
     if access_key:
         print(f"Debug: RAKUTEN_ACCESS_KEY is set. Length: {len(access_key)}")

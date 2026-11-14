@@ -6,6 +6,10 @@ on:
     - cron: '15,45 * * * *'
   workflow_dispatch:
     inputs:
+      search_keywords:
+        description: '検索キーワード（空欄ならランダム自動選定）'
+        required: false
+        default: ''
       post_platform:
         description: '投稿プラットフォーム（空欄なら自動交互ローテーション、rakuten または yahoo）'
         required: false
@@ -52,6 +56,7 @@ jobs:
         YAHOO_CLIENT_SECRET: ${{ secrets.YAHOO_CLIENT_SECRET }}
         YAHOO_AFFILIATE_ID: ${{ secrets.YAHOO_AFFILIATE_ID }}
         POST_PLATFORM: ${{ github.event.inputs.post_platform || '' }}
+        SEARCH_KEYWORDS: ${{ github.event.inputs.search_keywords || '' }}
         HATENA_ID: ${{ secrets.HATENA_ID }}
         HATENA_BLOG_ID: ${{ secrets.HATENA_BLOG_ID }}
         HATENA_API_KEY: ${{ secrets.HATENA_API_KEY }}
