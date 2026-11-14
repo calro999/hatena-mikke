@@ -1401,3 +1401,5 @@ wasshoi-mura:10024596
 goodfindstore:10083329
 miraclim:10003382
 toyhobbymarket:10078606
+taiyo-no-aloe:10000023
+mediheal:10000048
