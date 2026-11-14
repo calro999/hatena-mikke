@@ -1415,3 +1415,5 @@ cinemacollection:10146135
 gosunwood:10007973
 pop-mart-japan:10004189
 mobile-land:10082765
+glitter-dress:10042015
+manianomori:10000010
