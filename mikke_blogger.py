@@ -1,3 +1,4 @@
+from external_links import find_best_external_link, generate_external_link_html
 from typing import Optional, Set, Dict, Any
 import time
 import base64
@@ -619,7 +620,11 @@ def post_single_article(
 </script>
 """
 
-    article_content = f"{ga_html}\n{desc_html}\n{img_html}\n{early_cta_html}\n{body_html}\n{closing_cta_html}"
+    ext_target = find_best_external_link(target_item.get('title', ''), target_item.get('itemCaption', '') or target_item.get('caption', ''))
+    ext_link_html = generate_external_link_html(ext_target)
+    if ext_link_html:
+        print(f"[EXTERNAL-LINK] Added affinity link to {ext_target['domain']}")
+    article_content = f"{ga_html}\n{desc_html}\n{img_html}\n{early_cta_html}\n{body_html}\n{ext_link_html}\n{closing_cta_html}"
 
     published_entry_url = hatena_client.post_entry(
         title=blog_title,

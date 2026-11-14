@@ -12,7 +12,8 @@ def sanitize_llm_output(content, valid_affiliate_url=""):
     url_pattern = r'https?://[^\s"<>\'\)]+'
     def replace_url(match):
         found_url = match.group(0)
-        if "room.rakuten.co.jp" in found_url or "hb.afl.rakuten.co.jp" in found_url or ("rakuten.co.jp" in found_url and "affiliateId" in found_url) or "hatena.ne.jp" in found_url:
+        allowed_domains = ["room.rakuten.co.jp", "hb.afl.rakuten.co.jp", "rakuten.co.jp", "hatena.ne.jp", "kurakaji.vercel.app", "croud-travel.pages.dev", "tigyu-mens.vercel.app", "qualia-navi.vercel.app"]
+        if any(d in found_url for d in allowed_domains):
             return found_url
         return valid_affiliate_url if valid_affiliate_url else "https://room.rakuten.co.jp/jack555/items"
     
