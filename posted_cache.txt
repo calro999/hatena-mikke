@@ -1399,3 +1399,5 @@ smltrading:10000795
 shizuya:10000997
 wasshoi-mura:10024596
 goodfindstore:10083329
+miraclim:10003382
+toyhobbymarket:10078606
