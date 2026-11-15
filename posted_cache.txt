@@ -1437,3 +1437,5 @@ gosunwood:10008448
 sanyodo-shop:10047097
 whitewings:10073715
 yk-0610shop:10049349
+festival-plaza:10065654
+hobbyzakka-cha3:10005248
