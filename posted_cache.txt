@@ -1421,3 +1421,5 @@ mahy1:10063690
 perfectworld-tokyo:10329876
 shizuya:10002617
 anitto-friends:10194466
+wasshoi-mura:10025121
+yousay-do:10092364
