@@ -1435,3 +1435,5 @@ smltrading:10001456
 ryutatsu:10000249
 gosunwood:10008448
 sanyodo-shop:10047097
+whitewings:10073715
+yk-0610shop:10049349
