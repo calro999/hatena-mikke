@@ -1458,3 +1458,5 @@ hellodear:10076055
 gosunwood:10008569
 hugallhobby:10124639
 windaruma:10135826
+festival-plaza:10066823
+yousay-do-pointup:10057891
