@@ -1456,3 +1456,5 @@ smltrading:10000458
 ryutatsu:10001374
 hellodear:10076055
 gosunwood:10008569
+hugallhobby:10124639
+windaruma:10135826
