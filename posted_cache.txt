@@ -1468,3 +1468,5 @@ ryutatsu:10001375
 velkommen:10107750
 perfectworld-tokyo:10316452
 zb-market:10027294
+mirakikaku:10017827
+ryutatsu:10000245
