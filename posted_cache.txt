@@ -1472,3 +1472,5 @@ mirakikaku:10017827
 ryutatsu:10000245
 anitto-friends:10183790
 shizuya:10005260
+saitamatoy:10023270
+gacha-samurai:10015289
