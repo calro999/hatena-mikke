@@ -1480,3 +1480,5 @@ ryutatsu:10001054
 shizuya:10000578
 festival-plus:10072362
 yousay-do-pointup:10050577
+mm-pop:10335933
+yk-0610shop:10051314
