@@ -1476,3 +1476,5 @@ saitamatoy:10023270
 gacha-samurai:10015289
 perfectworld-tokyo:10319789
 htdd:10011157
+ryutatsu:10001054
+shizuya:10000578
