@@ -1478,3 +1478,5 @@ perfectworld-tokyo:10319789
 htdd:10011157
 ryutatsu:10001054
 shizuya:10000578
+festival-plus:10072362
+yousay-do-pointup:10050577
