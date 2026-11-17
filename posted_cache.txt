@@ -1464,3 +1464,5 @@ auc-yuyou:10221077
 yousay-do-pointup:10051237
 gosunwood:10008278
 arom-ams:10000121
+ryutatsu:10001375
+velkommen:10107750
