@@ -1470,3 +1470,5 @@ perfectworld-tokyo:10316452
 zb-market:10027294
 mirakikaku:10017827
 ryutatsu:10000245
+anitto-friends:10183790
+shizuya:10005260
