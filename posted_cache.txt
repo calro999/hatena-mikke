@@ -1502,3 +1502,5 @@ mirakikaku:10022614
 catwalks1:10547831
 surugaya-a-too:365583997
 kaiunshop1:10065821
+sakulife:10199678
+yousay-do:10098880
