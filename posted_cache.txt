@@ -1504,3 +1504,5 @@ surugaya-a-too:365583997
 kaiunshop1:10065821
 sakulife:10199678
 yousay-do:10098880
+aoi-depart:10466642
+surugaya-a-too:365235918
