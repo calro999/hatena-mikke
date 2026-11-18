@@ -1484,3 +1484,5 @@ mm-pop:10335933
 yk-0610shop:10051314
 manianomori:10000590
 yousay-do-pointup:10054111
+manianomori:10001276
+saitamatoy:10023000
