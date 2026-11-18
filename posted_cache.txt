@@ -1490,3 +1490,5 @@ ryutatsu:10001521
 yousay-do:10095224
 allblue88:10000391
 htdd:10011139
+suns-online-store:10005382
+ryutatsu:10001330
