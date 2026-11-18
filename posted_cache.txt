@@ -1486,3 +1486,5 @@ manianomori:10000590
 yousay-do-pointup:10054111
 manianomori:10001276
 saitamatoy:10023000
+ryutatsu:10001521
+yousay-do:10095224
