@@ -1510,3 +1510,5 @@ kanfudo:10000427
 yousay-do:10099114
 manianomori:10001275
 gosunwood:10008523
+auc-yuyou:10221078
+gosunwood:10008374
