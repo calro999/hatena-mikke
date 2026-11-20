@@ -1550,3 +1550,5 @@ yk-0610shop:10063933
 htdd:10011115
 auc-sunny:10016855
 skindesign:10002702
+yousay-do:10091705
+olivegirls:10006969
