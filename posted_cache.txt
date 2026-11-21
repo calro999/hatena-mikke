@@ -1568,3 +1568,5 @@ allblue88:10000392
 yousay-do:10102556
 slife:10177051
 aoi-depart:10466644
+yousay-do:10101169
+pop-mart-japan:10004466
