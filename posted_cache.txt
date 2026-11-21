@@ -1552,3 +1552,5 @@ auc-sunny:10016855
 skindesign:10002702
 yousay-do:10091705
 olivegirls:10006969
+jugem2020:10004141
+aoi-depart:10466650
