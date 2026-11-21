@@ -1564,3 +1564,5 @@ book:22137922
 gosunwood:10008320
 festival-plaza:10067910
 w-col:10099766
+allblue88:10000392
+yousay-do:10102556
