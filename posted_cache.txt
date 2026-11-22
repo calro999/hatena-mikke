@@ -1576,3 +1576,5 @@ toyhobbymarket:10079418
 bellevie-shop:10004361
 aoi-depart:10430103
 yousay-do:10100799
+saitamatoy:10020286
+yousay-do-pointup:10059569
