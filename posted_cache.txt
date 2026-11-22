@@ -1579,3 +1579,5 @@ yousay-do:10100799
 saitamatoy:10020286
 yousay-do-pointup:10059569
 shizuya:10005643
+shoplistselect:10578762
+shizuya:10002618
