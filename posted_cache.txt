@@ -1583,3 +1583,5 @@ shoplistselect:10578762
 shizuya:10002618
 shoplistselect:10602952
 botomulineshop01:10004162
+aoi-depart:10466643
+auc-world-antiqu:10010071
