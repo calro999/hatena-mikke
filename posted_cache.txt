@@ -1581,3 +1581,5 @@ yousay-do-pointup:10059569
 shizuya:10005643
 shoplistselect:10578762
 shizuya:10002618
+shoplistselect:10602952
+botomulineshop01:10004162
