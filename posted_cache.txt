@@ -1589,3 +1589,5 @@ yk-0610shop:10063915
 whitewings:11116409
 yousay-do-pointup:10061333
 aoi-depart:10407427
+8989usagiya:10050574
+realize-store:10399260
