@@ -1611,3 +1611,5 @@ observations:10072055
 ryutatsu:10001745
 miraclim:10003366
 noris-collection:10009271
+hobbyzakka-cha3:10007753
+hobbyzakka-cha3:10008407
