@@ -1599,3 +1599,5 @@ hellodear:10694194
 raspberrymarket:10199069
 aoi-depart:10466645
 velkommen:10107760
+mirakikaku:10030186
+yousay-do:10101744
