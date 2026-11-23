@@ -1601,3 +1601,5 @@ aoi-depart:10466645
 velkommen:10107760
 mirakikaku:10030186
 yousay-do:10101744
+8989usagiya:10050573
+velkommen:10107749
