@@ -1614,3 +1614,5 @@ noris-collection:10009271
 hobbyzakka-cha3:10007753
 hobbyzakka-cha3:10008407
 yk-0610shop:10063901
+festival-plaza:10054677
+hobbyzakka-cha3:10008982
