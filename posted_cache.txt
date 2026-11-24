@@ -1620,3 +1620,5 @@ wasshoi-mura:10025155
 best-plice:10182927
 yk-0610shop:10058093
 festival-plus:10072372
+shizuya:10000579
+kishi-gum:10032790
