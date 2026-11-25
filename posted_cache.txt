@@ -1634,3 +1634,5 @@ suns-online-store:10005099
 mirakikaku:10028325
 mobile-land:10084264
 otakarasouko:10411913
+orange58:10001936
+yousay-do-pointup:10060518
