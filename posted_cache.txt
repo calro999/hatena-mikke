@@ -1642,3 +1642,5 @@ suns-online-store:10005102
 meiaistore:10002031
 2ndls:10005034
 shoplistselect:10579673
+mobile-land:10084265
+yk-0610shop:10049382
