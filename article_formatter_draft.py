@@ -3,6 +3,7 @@ import re
 import json
 import requests
 from typing import Dict, Any, Tuple, Optional
+from external_links import find_best_external_link, generate_external_link_html
 
 class DraftArticleFormatter:
     """ユーザー指定の高品質スタイルに完全準拠したHTMLレビュー記事ジェネレーター"""
@@ -113,6 +114,7 @@ class DraftArticleFormatter:
 3. タイトルは絶対に途中で途切れさせず、意味の通る美しい日本語で完結させること（30〜35文字程度）。
 4. HTMLのコメント（<!-- ... -->）は一切出力に含めないこと。
 5. AI臭いありきたりな表現（「いかがでしたでしょうか」「〜してみてはいかがでしょうか」「魅力をご紹介します」等）は排除し、読者に寄り添う自然で熱量のある文章にすること。
+6. 【アプリ再検索・離脱防止ルール（最重要）】読者が「あとでアプリで検索しよう」と離脱しないよう、確定価格（〇〇円）やフル商品名を記事内で全部明かしきらないこと。型番・品番や通称の言及はOKですが、文章中では製品の体験・魅力を語り、「現在の在庫状況・最新価格・クーポンの有無はリンク先で確認」という確認理由を残すCTA文言にしてください。
 
 【商品情報】
 商品名: {name}
@@ -171,6 +173,10 @@ class DraftArticleFormatter:
         summary_lead = parsed.get("summary_lead") or f"日々の暮らしをより豊かに変える『{clean_name}』"
         summary_body = parsed.get("summary_body") or "毎日のモチベーションを高めてくれる心強いアイテム。気になっている方は、ぜひ在庫のあるうちにチェックしてみてください。"
         cta_text_3 = parsed.get("cta_text_3") or "在庫状況と詳細をチェックする"
+
+        # 最下部おすすめメディアCTAリンク（クラカジ / 旅宿クラウド / 相互リンク等）
+        ext_target = find_best_external_link(name, desc, current_site="mikke-hobby")
+        ext_link_html = generate_external_link_html(ext_target)
 
         # 確実に実在するYahoo画像【3枚のみ】を配置（HTMLコメントは完全排除）
         html = f"""<div style="font-family: 'Helvetica Neue', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; line-height: 2.0; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #fcfcfd; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
@@ -234,6 +240,8 @@ class DraftArticleFormatter:
             {cta_text_3}
         </a>
     </div>
+
+    {ext_link_html}
 
     <div style="margin-top: 60px; padding: 20px; border-top: 1px dashed #ced6e0; text-align: center;">
         <p style="font-size: 0.85em; color: #a4b0be; margin: 0;">

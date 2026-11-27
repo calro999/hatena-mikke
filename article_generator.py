@@ -12,7 +12,7 @@ def sanitize_llm_output(content, valid_affiliate_url=""):
     url_pattern = r'https?://[^\s"<>\'\)]+'
     def replace_url(match):
         found_url = match.group(0)
-        allowed_domains = ["room.rakuten.co.jp", "hb.afl.rakuten.co.jp", "rakuten.co.jp", "hatena.ne.jp", "kurakaji.vercel.app", "croud-travel.pages.dev", "tigyu-mens.vercel.app", "qualia-navi.vercel.app"]
+        allowed_domains = ["room.rakuten.co.jp", "hb.afl.rakuten.co.jp", "rakuten.co.jp", "hatena.ne.jp", "hatenablog.com", "hatenablog.jp", "hateblo.jp", "kurakaji.vercel.app", "croud-travel.pages.dev", "isekai-compas.vercel.app", "mono-repo.hatenablog.jp", "book-muryo.hateblo.jp"]
         if any(d in found_url for d in allowed_domains):
             return found_url
         return valid_affiliate_url if valid_affiliate_url else "https://room.rakuten.co.jp/jack555/items"
@@ -68,6 +68,12 @@ class ArticleGenerator:
 ※注意（厳格厳守）：
 - 記事内に「買わない理由」「デメリット10選」「購入をためらう理由」などの直接的・否定的な表現や見出しを出すことは【絶対に禁止】です。
 - あくまで「魅力の描写」「日常を彩るワクワク感」「手元に置く幸せ」の中で自然に懸念を氷解させ、読者が思わず笑顔でカートに入れたくなる洗練されたセールス文章に仕上げてください。
+
+【★アプリ再検索・離脱防止のリンク誘導戦略（最重要ルール）】
+読者が「なるほど、あとでいつものショッピングアプリ（Amazon/楽天/Yahoo!等）で検索して買おう」と離脱するスキを一切与えないでください。
+- 記事本文や見出しで、フル商品名や確定価格（〇〇円）、具体的なセール値引き額・特典内容を【すべて書ききってネタバレさせることは厳禁】です。
+- 製品の具体的な型番・品番・シリーズ番号（例: 「型番〇〇」や「Vol.〇〇」等）は記載しても構いませんが、正式名称や確定価格はあえて伏せ、「この完成度を誇る注目の逸品」「ファン垂涎の限定モデル」のように製品の圧倒的魅力や造形美のみを情熱的に伝えてください。
+- 「現在の在庫状況・最新の販売価格・限定特典やクーポンの有無は、下記の公式商品ページにてリアルタイムで確認できます」のように、読者が【今すぐリンク先を確認しなければならない理由】を自然に残し、リンク先へとスムーズに誘導してください。
 
 【必須の出力フォーマット（厳格遵守）】
 必ず以下のセクション区切り記号を使って出力してください。

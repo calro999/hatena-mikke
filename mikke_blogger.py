@@ -596,9 +596,9 @@ def post_single_article(
     
     early_cta_html = f"""
 <div style="margin: 20px 0 30px 0; padding: 16px 20px; background: #fff8f0; border: 2px solid #ffcca3; border-radius: 14px; text-align: center;">
-    <p style="font-size: 14px; color: #d9480f; font-weight: bold; margin: 0 0 10px 0;">＼ 在庫限り・売り切れ前に即確保！ ／</p>
+    <p style="font-size: 14px; color: #d9480f; font-weight: bold; margin: 0 0 10px 0;">＼ 在庫限り・特典や現在の販売状況をチェック！ ／</p>
     <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: {btn_gradient}; color: #fff; padding: 14px 32px; font-size: 16px; font-weight: bold; text-decoration: none; border-radius: 30px; box-shadow: 0 4px 14px {btn_shadow};">
-        {platform_name}で「{clean_title}」の在庫・価格を見る 🛒
+        {platform_name}で現在の在庫・最新価格・特典を確認する 🛒
     </a>
 </div>
 """
@@ -607,9 +607,9 @@ def post_single_article(
 <div style="margin: 40px 0 25px 0; padding: 24px 20px; background: #fffbf7; border: 2px solid #ffe3cc; border-radius: 18px; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,0.05);">
     <span style="display: inline-block; background: #333333; color: #fff; font-size: 12px; font-weight: bold; padding: 4px 14px; border-radius: 20px; margin-bottom: 12px;">{badge_title}</span>
     <div style="font-size: 18px; font-weight: bold; color: #222; margin-bottom: 8px; line-height: 1.4;">{clean_title}</div>
-    <div style="font-size: 20px; font-weight: bold; color: #d9480f; margin-bottom: 18px;">{target_item.get('price', '')}</div>
+    <div style="font-size: 14px; font-weight: bold; color: #666; margin-bottom: 16px;">※最新の価格・ポイント倍率・残り在庫数はリンク先をご確認ください</div>
     <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: {btn_gradient}; color: #ffffff; padding: 16px 36px; font-size: 17px; font-weight: bold; text-decoration: none; border-radius: 35px; box-shadow: 0 6px 16px {btn_shadow}; text-align: center;">
-        ＼ {platform_name}で詳細＆ユーザー口コミをチェック ／
+        ＼ {platform_name}で現在の在庫・最新価格・特典を確認 ／
     </a>
     <p style="font-size: 11px; color: #888; margin-top: 12px; margin-bottom: 0;">{notice_txt}</p>
 </div>
@@ -625,11 +625,12 @@ def post_single_article(
 </script>
 """
 
-    ext_target = find_best_external_link(target_item.get('title', ''), target_item.get('itemCaption', '') or target_item.get('caption', ''))
+    ext_target = find_best_external_link(target_item.get('title', ''), target_item.get('itemCaption', '') or target_item.get('caption', ''), current_site='mikke-hobby')
     ext_link_html = generate_external_link_html(ext_target)
     if ext_link_html:
-        print(f"[EXTERNAL-LINK] Added affinity link to {ext_target['domain']}")
-    article_content = f"{ga_html}\n{desc_html}\n{img_html}\n{early_cta_html}\n{body_html}\n{ext_link_html}\n{closing_cta_html}"
+        print(f"[EXTERNAL-LINK] Added affinity link to {ext_target['domain']} ({ext_target.get('site_name')})")
+    # 最下部にCTAボタンを配置
+    article_content = f"{ga_html}\n{desc_html}\n{img_html}\n{early_cta_html}\n{body_html}\n{closing_cta_html}\n{ext_link_html}"
 
     published_entry_url = hatena_client.post_entry(
         title=blog_title,
