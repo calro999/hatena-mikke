@@ -21,7 +21,37 @@ from bluesky_api import BlueskyAPI
 from yahoo_api import YahooMikkeAPI
 from toggle_mode import get_next_platform, save_current_platform
 
-CACHE_FILE = "posted_cache.txt"
+from affiliate_browser import AffiliateBrowserExtractor
+browser_extractor = AffiliateBrowserExtractor()
+
+def build_dual_cta_buttons(primary_url: str, clean_title: str, primary_platform: str = "rakuten") -> str:
+    """Yahoo!ショッピングとAmazonの2連ボタン（価格非表示、完全対応）"""
+    amazon_url = browser_extractor.get_amazon_search_url(clean_title)
+    
+    if primary_platform == "yahoo":
+        yahoo_url = primary_url
+        return f'''
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin: 25px auto; max-width: 600px;">
+    <a href="{yahoo_url}" target="_blank" rel="noopener noreferrer" style="flex: 1 1 240px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #ff0033 0%, #cc0000 100%); color: #ffffff; font-size: 1.05em; font-weight: bold; text-decoration: none; padding: 14px 22px; border-radius: 50px; box-shadow: 0 4px 12px rgba(255, 0, 51, 0.3); transition: transform 0.2s ease;">
+        <span style="font-size: 0.9em; margin-right: 6px;">🛒</span> Yahoo!で在庫・詳細を見る
+    </a>
+    <a href="{amazon_url}" target="_blank" rel="noopener noreferrer" style="flex: 1 1 240px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #ff9900 0%, #e68a00 100%); color: #ffffff; font-size: 1.05em; font-weight: bold; text-decoration: none; padding: 14px 22px; border-radius: 50px; box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3); transition: transform 0.2s ease;">
+        <span style="font-size: 0.9em; margin-right: 6px;">📦</span> Amazonで詳細を見る
+    </a>
+</div>
+'''
+    else:
+        rakuten_url = primary_url
+        return f'''
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin: 25px auto; max-width: 600px;">
+    <a href="{rakuten_url}" target="_blank" rel="noopener noreferrer" style="flex: 1 1 240px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #ff6b00 0%, #e65c00 100%); color: #ffffff; font-size: 1.05em; font-weight: bold; text-decoration: none; padding: 14px 22px; border-radius: 50px; box-shadow: 0 4px 12px rgba(255, 107, 0, 0.3); transition: transform 0.2s ease;">
+        <span style="font-size: 0.9em; margin-right: 6px;">🛍️</span> 楽天市場で在庫・詳細を見る
+    </a>
+    <a href="{amazon_url}" target="_blank" rel="noopener noreferrer" style="flex: 1 1 240px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #ff9900 0%, #e68a00 100%); color: #ffffff; font-size: 1.05em; font-weight: bold; text-decoration: none; padding: 14px 22px; border-radius: 50px; box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3); transition: transform 0.2s ease;">
+        <span style="font-size: 0.9em; margin-right: 6px;">📦</span> Amazonで詳細を見る
+    </a>
+</div>
+'''
 
 # 商材データ定義（実際に売れている人気キャラクター・ジャンル）
 CHARACTERS = [
@@ -571,18 +601,19 @@ def post_single_article(
         product_image_url = "https://images.unsplash.com/photo-1558882224-cca166733360?w=800&auto=format&fit=crop&q=80"
 
     affiliate_link = target_item.get("affiliateUrl", "")
+    if platform == "yahoo" and affiliate_link:
+        print("[Affiliate Link] Extracting official Yahoo! affiliate shortlink via browser profile...")
+        official_yahoo_link = browser_extractor.get_yahoo_affiliate_url(affiliate_link)
+        if official_yahoo_link:
+            affiliate_link = official_yahoo_link
 
     if platform == "yahoo":
         platform_name = "Yahoo!ショッピング"
         badge_title = "Yahoo!ショッピング 公式・優良取扱店"
-        btn_gradient = "linear-gradient(135deg, #ff0033 0%, #ff334b 100%)"
-        btn_shadow = "rgba(255,0,51,0.3)"
         notice_txt = "※人気商品のため早期に在庫切れとなる場合がございます。PayPayポイント還元や最新の在庫状況は上記リンクよりご確認ください。"
     else:
         platform_name = "楽天市場"
         badge_title = "楽天市場 公式ショップ・優良取扱店"
-        btn_gradient = "linear-gradient(135deg, #FF6B00 0%, #FF8533 100%)"
-        btn_shadow = "rgba(255,107,0,0.35)"
         notice_txt = "※人気商品のため早期に在庫切れや完売となる場合がございます。最新の在庫状況は上記リンクよりご確認ください。"
 
     img_html = f'''
@@ -590,16 +621,14 @@ def post_single_article(
     <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; text-decoration: none;">
         <img src="{product_image_url}" alt="{clean_title}" style="width: 100%; max-width: 600px; height: auto; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: block; margin: 0 auto;">
     </a>
-    <p style="font-size: 11px; color: #888; margin-top: 8px;">（※画像クリックで{platform_name}の商品ページへ直接移動できます）</p>
+    <p style="font-size: 11px; color: #888; margin-top: 8px;">（※画像クリックで商品詳細へ移動できます）</p>
 </div>
 '''
     
     early_cta_html = f"""
 <div style="margin: 20px 0 30px 0; padding: 16px 20px; background: #fff8f0; border: 2px solid #ffcca3; border-radius: 14px; text-align: center;">
-    <p style="font-size: 14px; color: #d9480f; font-weight: bold; margin: 0 0 10px 0;">＼ 在庫限り・特典や現在の販売状況をチェック！ ／</p>
-    <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: {btn_gradient}; color: #fff; padding: 14px 32px; font-size: 16px; font-weight: bold; text-decoration: none; border-radius: 30px; box-shadow: 0 4px 14px {btn_shadow};">
-        {platform_name}で現在の在庫・最新価格・特典を確認する 🛒
-    </a>
+    <p style="font-size: 14px; color: #d9480f; font-weight: bold; margin: 0 0 10px 0;">＼ 在庫状況・特典や現在の販売状況をチェック！ ／</p>
+    {build_dual_cta_buttons(affiliate_link, clean_title, platform)}
 </div>
 """
 
@@ -608,9 +637,7 @@ def post_single_article(
     <span style="display: inline-block; background: #333333; color: #fff; font-size: 12px; font-weight: bold; padding: 4px 14px; border-radius: 20px; margin-bottom: 12px;">{badge_title}</span>
     <div style="font-size: 18px; font-weight: bold; color: #222; margin-bottom: 8px; line-height: 1.4;">{clean_title}</div>
     <div style="font-size: 14px; font-weight: bold; color: #666; margin-bottom: 16px;">※最新の価格・ポイント倍率・残り在庫数はリンク先をご確認ください</div>
-    <a href="{affiliate_link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: {btn_gradient}; color: #ffffff; padding: 16px 36px; font-size: 17px; font-weight: bold; text-decoration: none; border-radius: 35px; box-shadow: 0 6px 16px {btn_shadow}; text-align: center;">
-        ＼ {platform_name}で現在の在庫・最新価格・特典を確認 ／
-    </a>
+    {build_dual_cta_buttons(affiliate_link, clean_title, platform)}
     <p style="font-size: 11px; color: #888; margin-top: 12px; margin-bottom: 0;">{notice_txt}</p>
 </div>
 """
